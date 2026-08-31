@@ -22,88 +22,36 @@ export class P2PManager {
   private profile: PlayerProfile | null = null;
   private currentState: GameState | null = null;
   private callbacks: MultiplayerCallbacks;
+  private isDestroyed: boolean = false;
 
   constructor(callbacks: MultiplayerCallbacks) {
     this.callbacks = callbacks;
   }
 
-  public async init(roomId: string, profile: PlayerProfile, forceHost: boolean = false) {
+  public async init(roomId: string, profile: PlayerProfile) {
     if (typeof window === 'undefined') return;
     this.roomId = roomId.toUpperCase().trim();
     this.profile = profile;
+    this.isDestroyed = false;
     this.callbacks.onStatusChange('connecting', false);
 
     const Peer = (await import('peerjs')).default;
     const hostPeerId = `catan3d_room_${this.roomId}`;
 
-    if (forceHost) {
-      this.becomeHost(Peer, hostPeerId);
-    } else {
-      // Try connecting to existing host first
-      const clientPeerId = `catan3d_client_${this.roomId}_${profile.id}_${Math.random().toString(36).substring(2, 6)}`;
-      const clientPeer = new Peer(clientPeerId);
-
-      clientPeer.on('open', () => {
-        this.peer = clientPeer;
-        const conn = clientPeer.connect(hostPeerId, { reliable: true });
-
-        const timeout = setTimeout(() => {
-          // If no connection within 3s, assume room does not exist and become host
-          if (!this.hostConnection || !this.hostConnection.open) {
-            conn.close();
-            clientPeer.destroy();
-            this.becomeHost(Peer, hostPeerId);
-          }
-        }, 3000);
-
-        conn.on('open', () => {
-          clearTimeout(timeout);
-          this.hostConnection = conn;
-          this.isHost = false;
-          this.callbacks.onStatusChange('connected', false);
-
-          // Send JOIN_ROOM action to host
-          this.sendAction({
-            type: 'JOIN_ROOM',
-            player: {
-              id: profile.id,
-              name: profile.name,
-              color: profile.color,
-              pieceStyle: profile.pieceStyle,
-              avatarSeed: profile.avatarSeed,
-            },
-          });
-        });
-
-        conn.on('data', (data: any) => {
-          this.handleClientReceivedData(data as PeerMessage);
-        });
-
-        conn.on('close', () => {
-          this.callbacks.onStatusChange('disconnected', false);
-          this.callbacks.onError('Mất kết nối với Chủ phòng.');
-        });
-
-        conn.on('error', (err: any) => {
-          clearTimeout(timeout);
-          conn.close();
-          clientPeer.destroy();
-          this.becomeHost(Peer, hostPeerId);
-        });
-      });
-
-      clientPeer.on('error', (err: any) => {
-        clientPeer.destroy();
-        this.becomeHost(Peer, hostPeerId);
-      });
-    }
+    // Try becoming host first (standard for room creators)
+    this.becomeHost(Peer, hostPeerId);
   }
 
   private becomeHost(Peer: any, hostPeerId: string) {
+    if (this.isDestroyed) return;
     this.isHost = true;
     const hostPeer = new Peer(hostPeerId);
 
     hostPeer.on('open', () => {
+      if (this.isDestroyed) {
+        hostPeer.destroy();
+        return;
+      }
       this.peer = hostPeer;
       this.callbacks.onStatusChange('connected', true);
 
@@ -149,8 +97,76 @@ export class P2PManager {
     });
 
     hostPeer.on('error', (err: any) => {
+      if (this.isDestroyed) return;
+      if (err?.type === 'unavailable-id') {
+        // Host ID is taken -> A host is already running! Connect as client!
+        hostPeer.destroy();
+        this.connectAsClient(Peer, hostPeerId);
+        return;
+      }
       console.error('Host Peer error:', err);
       this.callbacks.onError(`Lỗi máy chủ phòng: ${err?.type || err}`);
+    });
+  }
+
+  private connectAsClient(Peer: any, hostPeerId: string) {
+    if (this.isDestroyed) return;
+    this.isHost = false;
+    const clientPeerId = `catan3d_client_${this.roomId}_${this.profile?.id || 'anon'}_${Math.random().toString(36).substring(2, 6)}`;
+    const clientPeer = new Peer(clientPeerId);
+
+    clientPeer.on('open', () => {
+      if (this.isDestroyed) {
+        clientPeer.destroy();
+        return;
+      }
+      this.peer = clientPeer;
+      const conn = clientPeer.connect(hostPeerId, { reliable: true });
+
+      conn.on('open', () => {
+        if (this.isDestroyed) return;
+        this.hostConnection = conn;
+        this.callbacks.onStatusChange('connected', false);
+
+        // Send JOIN_ROOM action to host
+        if (this.profile) {
+          this.sendAction({
+            type: 'JOIN_ROOM',
+            player: {
+              id: this.profile.id,
+              name: this.profile.name,
+              color: this.profile.color,
+              pieceStyle: this.profile.pieceStyle,
+              avatarSeed: this.profile.avatarSeed,
+            },
+          });
+        }
+      });
+
+      conn.on('data', (data: any) => {
+        this.handleClientReceivedData(data as PeerMessage);
+      });
+
+      conn.on('close', () => {
+        this.callbacks.onStatusChange('disconnected', false);
+        this.callbacks.onError('Mất kết nối với Chủ phòng.');
+      });
+
+      conn.on('error', (err: any) => {
+        console.warn('Client DataConnection error:', err);
+      });
+    });
+
+    clientPeer.on('error', (err: any) => {
+      if (this.isDestroyed) return;
+      if (err?.type === 'peer-unavailable') {
+        // Host does not exist, become host
+        clientPeer.destroy();
+        this.becomeHost(Peer, hostPeerId);
+        return;
+      }
+      console.error('Client peer error:', err);
+      this.callbacks.onError(`Lỗi kết nối client: ${err?.type || err}`);
     });
   }
 
@@ -203,6 +219,7 @@ export class P2PManager {
   }
 
   public destroy() {
+    this.isDestroyed = true;
     if (this.hostConnection) {
       this.hostConnection.close();
       this.hostConnection = null;
