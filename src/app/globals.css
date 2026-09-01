@@ -68,12 +68,12 @@ body {
     display: inline-flex;
     position: relative;
     z-index: 2;
-    width: min(100%, 7.5rem);
-    min-height: 2.6rem;
+    width: min(100%, 7.2rem);
+    min-height: 2.4rem;
     align-items: center;
     justify-content: center;
-    margin-top: -1.15rem;
-    padding: 0.25rem 0.35rem 0.4rem;
+    margin-top: -1.1rem;
+    padding: 0.18rem 0.35rem 0.35rem;
     background: url('/assets/menu/menu_ribbon_label_blank.png') center / 100% 100% no-repeat;
     color: #3b1c08;
     font-weight: 700;
@@ -87,31 +87,40 @@ body {
 
   /* Hover states for entire item, badge, ribbon and text */
   .home-nav-item:hover .home-nav-badge {
-    transform: translateY(-5px) scale(1.08);
-    filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 10px rgba(251, 191, 36, 0.45)) brightness(1.1);
+    transform: translateY(-5px) scale(1.12);
+    filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.95)) drop-shadow(0 0 14px rgba(251, 191, 36, 0.6)) brightness(1.15);
   }
 
   .home-nav-item:hover .home-nav-label {
-    transform: translateY(-2px) scale(1.05);
-    filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 8px rgba(251, 191, 36, 0.55)) brightness(1.12);
+    transform: translateY(-2px) scale(1.06);
+    filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.9)) drop-shadow(0 0 8px rgba(251, 191, 36, 0.6)) brightness(1.15);
     color: #1f0b01;
     text-shadow: 0 0 8px rgba(255, 225, 120, 0.85), 0 1px 0 rgba(255, 245, 205, 0.95);
   }
 
   .home-nav-item:active .home-nav-badge {
-    transform: translateY(-1px) scale(0.97);
+    transform: translateY(-1px) scale(0.96);
   }
 
   .home-nav-item:active .home-nav-label {
-    transform: translateY(0) scale(0.97);
+    transform: translateY(0) scale(0.96);
   }
 
   @media (min-width: 640px) {
     .home-nav-label {
-      width: min(100%, 10rem);
-      min-height: 3.6rem;
-      margin-top: -1.75rem;
-      padding: 0.35rem 0.5rem 0.5rem;
+      width: min(100%, 9.6rem);
+      min-height: 3.2rem;
+      margin-top: -1.65rem;
+      padding: 0.25rem 0.5rem 0.45rem;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .home-nav-label {
+      width: min(100%, 10.2rem);
+      min-height: 3.4rem;
+      margin-top: -1.8rem;
+      padding: 0.3rem 0.55rem 0.5rem;
     }
   }
 }

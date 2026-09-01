@@ -170,46 +170,47 @@ export default function GameRoomPage() {
       {/* 2. FLOATING TRANSPARENT TOP HEADER */}
       <header className="absolute top-0 inset-x-0 z-30 p-3 sm:p-4 flex items-center justify-between pointer-events-none">
         {/* Top Left: Hamburger + CATAN Logo Box */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-black/75 border-2 border-catan-gold-trim/80 shadow-2xl backdrop-blur-md pointer-events-auto">
+        <div className="flex items-center gap-4 px-5 py-3 sm:px-6 sm:py-3.5 rounded-3xl bg-black/85 border-3 border-catan-gold-trim shadow-[0_15px_35px_rgba(0,0,0,0.7)] backdrop-blur-xl pointer-events-auto">
           <button
             onClick={() => router.push('/')}
-            className="text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform"
-            title="Về Trang Chủ"
+            className="p-2 rounded-2xl text-catan-gold-trim hover:bg-white/15 hover:scale-115 active:scale-90 transition-all flex items-center justify-center cursor-pointer"
+            title="Menu Chính / Về Trang Chủ"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-10 h-10 sm:w-12 sm:h-12 stroke-[3]" />
           </button>
-          <span className="font-black text-xl sm:text-2xl tracking-widest text-catan-gold-trim drop-shadow pl-1">
+          <div className="w-0.5 h-8 bg-catan-gold-trim/50" />
+          <span className="font-black text-3xl sm:text-4xl tracking-widest text-catan-gold-trim drop-shadow-md pr-2">
             CATAN
           </span>
         </div>
 
-        {/* Top Right: 3 Action Badges */}
-        <div className="flex items-center gap-2 pointer-events-auto">
+        {/* Top Right: 3 Big Action Badges */}
+        <div className="flex items-center gap-3 sm:gap-4 pointer-events-auto">
           {/* Dice stats icon */}
           <button
             onClick={() => dispatch({ type: 'ROLL_DICE', playerId: profile.id })}
-            className="w-10 h-10 rounded-full bg-black/75 border-2 border-catan-gold-trim/80 flex items-center justify-center text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform shadow-xl"
+            className="w-15 h-15 sm:w-17 sm:h-17 rounded-3xl bg-black/85 border-3 border-catan-gold-trim flex items-center justify-center text-catan-gold-trim hover:bg-white/15 hover:scale-110 active:scale-95 transition-all shadow-2xl cursor-pointer"
             title="Đổ Xúc Xắc"
           >
-            <Dices className="w-5 h-5" />
+            <Dices className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.5]" />
           </button>
 
           {/* Rules / Help icon */}
           <button
             onClick={() => setIsRulebookOpen(true)}
-            className="w-10 h-10 rounded-full bg-black/75 border-2 border-catan-gold-trim/80 flex items-center justify-center text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform shadow-xl"
+            className="w-15 h-15 sm:w-17 sm:h-17 rounded-3xl bg-black/85 border-3 border-catan-gold-trim flex items-center justify-center text-catan-gold-trim hover:bg-white/15 hover:scale-110 active:scale-95 transition-all shadow-2xl cursor-pointer"
             title="Tra Cứu Luật Chơi"
           >
-            <HelpCircle className="w-5 h-5" />
+            <HelpCircle className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.5]" />
           </button>
 
           {/* Settings gear icon */}
           <button
             onClick={() => setIsProfileOpen(true)}
-            className="w-10 h-10 rounded-full bg-black/75 border-2 border-catan-gold-trim/80 flex items-center justify-center text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform shadow-xl"
-            title="Cài Đặt"
+            className="w-15 h-15 sm:w-17 sm:h-17 rounded-3xl bg-black/85 border-3 border-catan-gold-trim flex items-center justify-center text-catan-gold-trim hover:bg-white/15 hover:scale-110 active:scale-95 transition-all shadow-2xl cursor-pointer"
+            title="Cài Đặt / Hồ Sơ"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.5]" />
           </button>
         </div>
       </header>

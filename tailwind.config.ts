@@ -36,8 +36,11 @@ const config: Config = {
         'btn-wood-active': '0 1px 2px rgba(0,0,0,0.5), inset 0 4px 6px rgba(0,0,0,0.6)',
       },
       fontFamily: {
-        catan: ["var(--font-playfair)", "serif"],
-        sans: ["var(--font-be-vietnam)", "system-ui", "sans-serif"],
+        cinzel: ["var(--font-cinzel)", "Cinzel", "Georgia", "serif"],
+        "cinzel-decorative": ["var(--font-cinzel-decorative)", "Cinzel Decorative", "Cinzel", "Georgia", "serif"],
+        cormorant: ["var(--font-cormorant)", "Cormorant Garamond", "Garamond", "Georgia", "serif"],
+        catan: ["var(--font-cinzel)", "var(--font-playfair)", "Georgia", "serif"],
+        sans: ["var(--font-inter)", "var(--font-be-vietnam)", "system-ui", "sans-serif"],
       },
     },
   },

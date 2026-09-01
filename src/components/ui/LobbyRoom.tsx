@@ -69,48 +69,48 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
       {/* 2. TOP FLOATING NAVIGATION BAR */}
       <header className="relative z-30 w-full flex items-center justify-between pointer-events-none">
         {/* Top Left: Return to Home button + CATAN Brand */}
-        <div className="flex items-center gap-3 bg-black/75 border-2 border-catan-gold-trim/80 px-4 py-2 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto">
+        <div className="flex items-center gap-4 bg-black/85 border-3 border-catan-gold-trim px-5 py-3 sm:px-6 sm:py-3.5 rounded-3xl shadow-2xl backdrop-blur-xl pointer-events-auto">
           <button
             onClick={() => router.push('/')}
-            className="text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform flex items-center gap-1.5 font-bold text-sm"
+            className="text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform flex items-center gap-2.5 font-black text-base sm:text-lg cursor-pointer"
             title="Về Trang Chủ"
           >
-            <ArrowLeft className="w-4 h-4" /> Trang Chủ
+            <ArrowLeft className="w-7 h-7 sm:w-8 sm:h-8 stroke-[3]" /> Trang Chủ
           </button>
-          <div className="w-px h-5 bg-catan-gold-trim/40" />
-          <span className="font-black text-xl tracking-widest text-catan-gold-trim">
+          <div className="w-0.5 h-8 bg-catan-gold-trim/50" />
+          <span className="font-black text-3xl sm:text-4xl tracking-widest text-catan-gold-trim drop-shadow-md">
             CATAN
           </span>
         </div>
 
         {/* Top Center: Room Code Pill & Copy Invite Link */}
-        <div className="flex items-center gap-3 bg-black/80 border-2 border-catan-gold-trim/80 px-4 py-2 rounded-2xl shadow-2xl backdrop-blur-md pointer-events-auto">
-          <span className="text-xs text-catan-parchment/70 uppercase tracking-widest font-sans font-bold">Mã Phòng:</span>
-          <strong className="text-amber-300 font-mono font-black text-base tracking-widest px-2 py-0.5 rounded bg-black/50 border border-catan-gold-trim/40">
+        <div className="flex items-center gap-3.5 bg-black/85 border-3 border-catan-gold-trim px-5 py-3 sm:px-6 sm:py-3.5 rounded-3xl shadow-2xl backdrop-blur-xl pointer-events-auto">
+          <span className="text-sm sm:text-base text-catan-parchment/80 uppercase tracking-widest font-sans font-black">Mã Phòng:</span>
+          <strong className="text-amber-300 font-mono font-black text-lg sm:text-xl tracking-widest px-3 py-1 rounded-xl bg-black/70 border border-catan-gold-trim/50">
             {roomId}
           </strong>
           <button
             onClick={handleCopyLink}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-xs transition-all shadow-md active:scale-95"
+            className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-stone-950 font-black text-sm sm:text-base transition-all shadow-lg active:scale-95 cursor-pointer"
           >
-            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-5 h-5 stroke-[3]" /> : <Copy className="w-5 h-5 stroke-[3]" />}
             {copied ? 'Đã Chép Link' : 'Sao Chép Link'}
           </button>
         </div>
 
         {/* Top Right: Custom Profile & Rulebook */}
-        <div className="flex items-center gap-2 pointer-events-auto">
+        <div className="flex items-center gap-3 pointer-events-auto">
           <button
             onClick={onOpenProfile}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-black/75 border-2 border-catan-gold-trim/80 text-catan-gold-trim hover:bg-black/90 text-xs sm:text-sm font-bold shadow-2xl backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+            className="flex items-center gap-2.5 px-5 py-3 rounded-3xl bg-black/85 border-3 border-catan-gold-trim text-catan-gold-trim hover:bg-black/95 text-sm sm:text-base font-bold shadow-2xl backdrop-blur-xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
-            <Settings className="w-4 h-4 text-amber-400" /> Hồ Sơ
+            <Settings className="w-6 h-6 sm:w-7 sm:h-7 text-amber-400 stroke-[2.5]" /> Hồ Sơ
           </button>
           <button
             onClick={onOpenRulebook}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-black/75 border-2 border-catan-gold-trim/80 text-catan-gold-trim hover:bg-black/90 text-xs sm:text-sm font-bold shadow-2xl backdrop-blur-md transition-all hover:scale-105 active:scale-95"
+            className="flex items-center gap-2.5 px-5 py-3 rounded-3xl bg-black/85 border-3 border-catan-gold-trim text-catan-gold-trim hover:bg-black/95 text-sm sm:text-base font-bold shadow-2xl backdrop-blur-xl transition-all hover:scale-105 active:scale-95 cursor-pointer"
           >
-            <BookOpen className="w-4 h-4 text-amber-400" /> Luật Chơi
+            <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-amber-400 stroke-[2.5]" /> Luật Chơi
           </button>
         </div>
       </header>
