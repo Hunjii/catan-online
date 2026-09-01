@@ -71,7 +71,16 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
   const activePlayerId = gameState.playerOrder[gameState.activePlayerIndex];
 
   return (
-    <div className="w-full flex flex-col gap-2.5 pointer-events-auto select-none font-catan">
+    <div className="game-panel w-full flex flex-col gap-2.5 rounded-2xl border-2 border-catan-gold-trim/70 p-2 pointer-events-auto select-none font-catan">
+      <div className="flex items-center justify-between border-b border-catan-gold-trim/30 px-1 pb-2">
+        <div>
+          <p className="font-sans text-[9px] font-black uppercase tracking-[0.18em] text-amber-200/65">HỘI ĐỒNG ĐẢO</p>
+          <p className="text-xs font-black tracking-wide text-catan-parchment">Các nhà khai phá</p>
+        </div>
+        <span className="rounded-full border border-catan-gold-trim/45 bg-black/25 px-2 py-1 font-sans text-[10px] font-bold text-amber-100/75">
+          {gameState.players.length}/4
+        </span>
+      </div>
       {gameState.playerOrder.map((playerId) => {
         const player = gameState.players.find((p) => p.id === playerId);
         if (!player) return null;

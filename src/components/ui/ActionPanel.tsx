@@ -103,7 +103,16 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
     <div className="flex flex-col gap-3 w-full h-full justify-between pointer-events-auto select-none font-catan">
       
       {/* 1. MIDDLE: ACTION BUTTONS (Parchment Styled Stack) */}
-      <div className="my-auto flex flex-col gap-2 p-3 bg-black/70 rounded-2xl border-2 border-catan-gold-trim/80 shadow-2xl backdrop-blur-md">
+      <div className="game-panel my-auto flex flex-col gap-2 rounded-2xl border-2 border-catan-gold-trim/80 p-3 backdrop-blur-md">
+        <div className="mb-1 flex items-center justify-between border-b border-catan-gold-trim/30 pb-2">
+          <div>
+            <p className="font-sans text-[9px] font-black uppercase tracking-[0.18em] text-amber-200/65">BÀN ĐIỀU KHIỂN</p>
+            <p className="text-xs font-black tracking-wide text-catan-parchment">Hành động trong lượt</p>
+          </div>
+          <span className="rounded-full border border-catan-gold-trim/50 bg-black/25 px-2 py-1 font-sans text-[10px] font-bold text-amber-200/80">
+            {isMyTurn ? 'ĐẾN LƯỢT' : 'THEO DÕI'}
+          </span>
+        </div>
         {/* Button 1: Xây Đường */}
         <button
           onClick={() =>
@@ -199,7 +208,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
       </div>
 
       {/* 3. BOTTOM RIGHT: 3D DICE BOWL & END TURN BUTTON */}
-      <div className="flex flex-col items-center gap-2.5">
+      <div className="game-panel flex flex-col items-center gap-2.5 rounded-2xl border-2 border-catan-gold-trim/70 p-2.5 backdrop-blur-md">
         {/* Circular Dice Bowl */}
         <div
           onClick={() => {
@@ -233,7 +242,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
             }
           `}
         >
-          KẾT THÚC LƯỢT
+          {isMyTurn && gameState.phase === 'turn_actions' ? 'KẾT THÚC LƯỢT' : 'CHỜ ĐẾN LƯỢT'}
         </button>
       </div>
 

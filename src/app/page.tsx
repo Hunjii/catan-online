@@ -10,15 +10,11 @@ import { MultiplayerModal } from '@/components/ui/MultiplayerModal';
 import { LeaderboardModal } from '@/components/ui/LeaderboardModal';
 import { ShopModal, QuestsModal, FriendsModal, InventoryModal } from '@/components/ui/ExtraHomeModals';
 import {
-  Menu,
   Settings,
   Users,
   Bot,
   BookOpen,
   Trophy,
-  ShoppingCart,
-  Scroll,
-  Package,
   Star,
   Sparkles,
 } from 'lucide-react';
@@ -48,22 +44,14 @@ export default function HomePage() {
   };
 
   return (
-    <main className="min-h-screen w-full bg-dark-wood-pattern bg-cover bg-center bg-fixed flex flex-col justify-between p-3 sm:p-6 md:p-8 text-amber-50 font-catan select-none relative overflow-x-hidden">
-      {/* Dark vignette overlay covering full PC screen */}
-      <div className="fixed inset-0 bg-gradient-to-b from-black/50 via-black/20 to-black/80 pointer-events-none" />
-
+    <main
+      className="min-h-screen w-full bg-cover bg-center bg-fixed flex flex-col justify-between p-3 sm:p-6 md:p-8 text-amber-50 font-catan select-none relative overflow-x-hidden"
+      style={{ backgroundImage: "url('/assets/man_background.png')" }}
+    >
       {/* 1. TOP HEADER (Full width on PC, max-w-7xl) */}
       <header className="w-full max-w-7xl mx-auto flex items-center justify-between z-10 py-2">
-        {/* Left: Menu button & CATAN Brand */}
-        <div className="flex items-center gap-4 sm:gap-6">
-          <button
-            onClick={() => setIsRulebookOpen(true)}
-            className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl bg-black/60 border-2 border-catan-gold-trim/80 flex items-center justify-center text-catan-gold-trim hover:bg-black/80 hover:scale-105 active:scale-95 transition-all shadow-btn-wood"
-            title="Menu"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-          
+        {/* Left: CATAN Brand */}
+        <div className="flex items-center">
           <div className="flex flex-col">
             <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-widest text-catan-gold-trim drop-shadow-[0_4px_10px_rgba(0,0,0,0.9)] leading-none">
               CATAN
@@ -82,14 +70,10 @@ export default function HomePage() {
           >
             <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden border-2 border-catan-gold-trim shadow-inset-wood shrink-0 bg-catan-dark-wood">
               <Image
-                src={
-                  profile.avatar
-                    ? `/assets/profile/portrait_${profile.avatar}_big.png`
-                    : '/assets/profile/portrait_alexander_big.png'
-                }
+                src={`/assets/avatars/${profile.avatar || 'alexander'}.png`}
                 alt={profile.name || 'Alexander'}
                 fill
-                className="object-cover"
+                className="object-cover scale-110"
                 sizes="48px"
               />
             </div>
@@ -263,63 +247,57 @@ export default function HomePage() {
       </div>
 
       {/* 3. BOTTOM NAVIGATION DOCK (Dock on PC, spanning grid on mobile) */}
-      <footer className="w-full max-w-2xl mx-auto z-10 pt-2 pb-2">
-        <nav className="w-full grid grid-cols-4 gap-2 sm:gap-4 p-2 sm:p-3 border-2 border-catan-gold-trim/50 bg-black/70 rounded-2xl backdrop-blur-md shadow-2xl">
-          {/* Item 1: Cửa hàng */}
-          <button
-            onClick={() => setIsShopOpen(true)}
-            className="flex flex-col items-center justify-center gap-1 py-1 sm:py-2 group transition-transform active:scale-95 hover:bg-white/5 rounded-xl"
-          >
-            <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-catan-gold-trim group-hover:scale-110 transition-transform">
-              <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow" />
-            </div>
-            <span className="text-[11px] sm:text-xs font-bold text-catan-parchment group-hover:text-catan-gold-trim transition-colors">
-              Cửa hàng
-            </span>
-          </button>
+      <footer className="w-full max-w-2xl mx-auto z-10 pt-1 pb-2">
+        <nav aria-label="Quick menu" className="home-nav-dock w-full aspect-[2.75/1]">
+          <Image
+            src="/assets/menu/menu_board_wide.png"
+            alt="Menu Dock"
+            fill
+            className="home-nav-board object-fill"
+            sizes="(max-width: 672px) 100vw, 672px"
+            priority
+          />
 
-          {/* Item 2: Nhiệm vụ */}
-          <button
-            onClick={() => setIsQuestsOpen(true)}
-            className="flex flex-col items-center justify-center gap-1 py-1 sm:py-2 group transition-transform active:scale-95 hover:bg-white/5 rounded-xl relative"
-          >
-            <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-catan-gold-trim group-hover:scale-110 transition-transform relative">
-              <Scroll className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow" />
-              {/* Notification Badge '3' */}
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-600 border border-white text-[10px] font-sans font-black text-white flex items-center justify-center shadow-md animate-pulse">
-                3
-              </span>
-            </div>
-            <span className="text-[11px] sm:text-xs font-bold text-catan-parchment group-hover:text-catan-gold-trim transition-colors">
-              Nhiệm vụ
-            </span>
-          </button>
+          <div className="relative z-10 grid h-full grid-cols-4 items-center gap-1 px-4 sm:px-10 md:px-12 pt-1 sm:pt-2 pb-2 sm:pb-4">
+            {/* Item 1: Shop */}
+            <button
+              onClick={() => setIsShopOpen(true)}
+              className="home-nav-item flex flex-col items-center justify-center transition-transform active:scale-95"
+            >
+              <Image src="/assets/menu/menu_badge_shop.png" alt="" width={1254} height={1254} className="home-nav-badge h-13 w-13 sm:h-20 sm:w-20 md:h-22 md:w-22 object-contain" />
+              <span className="home-nav-label text-xs sm:text-lg md:text-xl">Shop</span>
+            </button>
 
-          {/* Item 3: Bạn bè */}
-          <button
-            onClick={() => setIsFriendsOpen(true)}
-            className="flex flex-col items-center justify-center gap-1 py-1 sm:py-2 group transition-transform active:scale-95 hover:bg-white/5 rounded-xl"
-          >
-            <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-catan-gold-trim group-hover:scale-110 transition-transform">
-              <Users className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow" />
-            </div>
-            <span className="text-[11px] sm:text-xs font-bold text-catan-parchment group-hover:text-catan-gold-trim transition-colors">
-              Bạn bè
-            </span>
-          </button>
+            {/* Item 2: Missions */}
+            <button
+              onClick={() => setIsQuestsOpen(true)}
+              className="home-nav-item relative flex flex-col items-center justify-center transition-transform active:scale-95"
+            >
+              <div className="relative">
+                <Image src="/assets/menu/menu_badge_missions.png" alt="" width={1254} height={1254} className="home-nav-badge h-13 w-13 sm:h-20 sm:w-20 md:h-22 md:w-22 object-contain" />
+                <Image src="/assets/menu/menu_badge_notification_3.png" alt="3 notifications" width={1254} height={1254} className="absolute -right-1 -top-1 sm:-right-2 sm:-top-2 h-5 w-5 sm:h-7 sm:w-7 md:h-8 md:w-8 object-contain z-20" />
+              </div>
+              <span className="home-nav-label text-xs sm:text-lg md:text-xl">Missions</span>
+            </button>
 
-          {/* Item 4: Hòm đồ */}
-          <button
-            onClick={() => setIsInventoryOpen(true)}
-            className="flex flex-col items-center justify-center gap-1 py-1 sm:py-2 group transition-transform active:scale-95 hover:bg-white/5 rounded-xl"
-          >
-            <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center text-catan-gold-trim group-hover:scale-110 transition-transform">
-              <Package className="w-5 h-5 sm:w-6 sm:h-6 drop-shadow" />
-            </div>
-            <span className="text-[11px] sm:text-xs font-bold text-catan-parchment group-hover:text-catan-gold-trim transition-colors">
-              Hòm đồ
-            </span>
-          </button>
+            {/* Item 3: Friends */}
+            <button
+              onClick={() => setIsFriendsOpen(true)}
+              className="home-nav-item flex flex-col items-center justify-center transition-transform active:scale-95"
+            >
+              <Image src="/assets/menu/menu_badge_friends.png" alt="" width={1295} height={1214} className="home-nav-badge h-13 w-13 sm:h-20 sm:w-20 md:h-22 md:w-22 object-contain" />
+              <span className="home-nav-label text-xs sm:text-lg md:text-xl">Friends</span>
+            </button>
+
+            {/* Item 4: Inventory */}
+            <button
+              onClick={() => setIsInventoryOpen(true)}
+              className="home-nav-item flex flex-col items-center justify-center transition-transform active:scale-95"
+            >
+              <Image src="/assets/menu/menu_badge_inventory.png" alt="" width={1254} height={1254} className="home-nav-badge h-13 w-13 sm:h-20 sm:w-20 md:h-22 md:w-22 object-contain" />
+              <span className="home-nav-label text-xs sm:text-lg md:text-xl">Inventory</span>
+            </button>
+          </div>
         </nav>
       </footer>
 

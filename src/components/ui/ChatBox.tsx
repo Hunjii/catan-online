@@ -64,7 +64,7 @@ export const ChatBox: React.FC<ChatBoxProps> = ({
   ].sort((a, b) => a.timestamp - b.timestamp);
 
   return (
-    <div className="w-full h-36 sm:h-44 max-h-[24vh] bg-black/80 border-2 border-catan-gold-trim/70 rounded-2xl flex flex-col justify-between shadow-2xl backdrop-blur-md overflow-hidden pointer-events-auto select-none font-catan">
+    <div className="game-panel w-full h-36 sm:h-44 max-h-[24vh] border-2 border-catan-gold-trim/70 rounded-2xl flex flex-col justify-between backdrop-blur-md overflow-hidden pointer-events-auto select-none font-catan">
       
       {/* Logs & Messages Feed */}
       <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-1.5 text-xs sm:text-sm font-sans">

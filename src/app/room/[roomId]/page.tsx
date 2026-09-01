@@ -17,6 +17,7 @@ import { RulebookModal } from '@/components/ui/RulebookModal';
 import { ProfileModal } from '@/components/ui/ProfileModal';
 import { ChatBox } from '@/components/ui/ChatBox';
 import { VictoryModal } from '@/components/ui/VictoryModal';
+import { TurnStatusBanner } from '@/components/ui/TurnStatusBanner';
 import {
   Loader2,
   Wifi,
@@ -212,6 +213,11 @@ export default function GameRoomPage() {
           </button>
         </div>
       </header>
+
+      {/* 2.5. Persistent turn context: keeps the next action visible without opening a modal */}
+      <div className="absolute left-1/2 top-[4.75rem] z-30 w-[min(92vw,34rem)] -translate-x-1/2 sm:top-[5.25rem]">
+        <TurnStatusBanner gameState={gameState} currentUserId={profile.id} />
+      </div>
 
       {/* 3. FLOATING LEFT COLUMN: Players List (Middle) & Chat (Bottom-Left) */}
       <div className="absolute left-3 sm:left-4 top-16 bottom-3 sm:bottom-4 w-64 sm:w-72 md:w-80 flex flex-col justify-between pointer-events-none z-20">
