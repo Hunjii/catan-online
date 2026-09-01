@@ -1,18 +1,16 @@
 'use client';
 
-import React from 'react';
+import Image from 'next/image';
 import { GameState, BUILDING_COSTS, ResourceType } from '@/lib/catan/types';
 import { hasEnoughResources } from '@/lib/catan/trade';
 import {
-  Dices,
   Hammer,
-  Building,
+  Home,
   Castle,
   Layers,
   ArrowRightLeft,
   BookOpen,
   CheckCircle,
-  HelpCircle,
 } from 'lucide-react';
 
 interface ActionPanelProps {
@@ -27,6 +25,46 @@ interface ActionPanelProps {
   onOpenDevCards: () => void;
   onOpenRulebook: () => void;
 }
+
+// 3D Dice Face Dots Component
+const DiceFace: React.FC<{ value: number }> = ({ value }) => {
+  const dotPositions: Record<number, string[]> = {
+    1: ['col-start-2 row-start-2'],
+    2: ['col-start-1 row-start-1', 'col-start-3 row-start-3'],
+    3: ['col-start-1 row-start-1', 'col-start-2 row-start-2', 'col-start-3 row-start-3'],
+    4: [
+      'col-start-1 row-start-1',
+      'col-start-3 row-start-1',
+      'col-start-1 row-start-3',
+      'col-start-3 row-start-3',
+    ],
+    5: [
+      'col-start-1 row-start-1',
+      'col-start-3 row-start-1',
+      'col-start-2 row-start-2',
+      'col-start-1 row-start-3',
+      'col-start-3 row-start-3',
+    ],
+    6: [
+      'col-start-1 row-start-1',
+      'col-start-3 row-start-1',
+      'col-start-1 row-start-2',
+      'col-start-3 row-start-2',
+      'col-start-1 row-start-3',
+      'col-start-3 row-start-3',
+    ],
+  };
+
+  const dots = dotPositions[value] || dotPositions[1];
+
+  return (
+    <div className="w-11 h-11 sm:w-12 sm:h-12 bg-white rounded-xl border-2 border-slate-300 shadow-[2px_4px_8px_rgba(0,0,0,0.6)] grid grid-cols-3 grid-rows-3 p-1.5 gap-0.5 items-center justify-items-center transform transition-transform hover:rotate-6">
+      {dots.map((pos, i) => (
+        <span key={i} className={`w-2 h-2 rounded-full bg-slate-900 ${pos}`} />
+      ))}
+    </div>
+  );
+};
 
 export const ActionPanel: React.FC<ActionPanelProps> = ({
   gameState,
@@ -46,186 +84,159 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 
   if (!myPlayer) return null;
 
-  // Determine status message
-  let statusMessage = '';
-  if (gameState.phase === 'setup_round_1' || gameState.phase === 'setup_round_2') {
-    const activePlayer = gameState.players.find((p) => p.id === activePlayerId);
-    if (isMyTurn) {
-      statusMessage =
-        gameState.setupSubStep === 'place_settlement'
-          ? '📍 Chọn 1 điểm phát sáng trên bàn cờ để đặt Làng khởi đầu.'
-          : '🛣️ Chọn 1 cạnh phát sáng nối từ Làng vừa đặt để xây Đường.';
-    } else {
-      statusMessage = `⏳ Đang chờ ${activePlayer?.name} thiết lập Làng & Đường khởi đầu...`;
-    }
-  } else if (gameState.phase === 'turn_roll_dice') {
-    statusMessage = isMyTurn
-      ? '🎲 Đến lượt của Bạn! Hãy nhấn "Gieo Xúc Xắc".'
-      : `⏳ Đang chờ ${gameState.players.find((p) => p.id === activePlayerId)?.name} gieo xúc xắc...`;
-  } else if (gameState.phase === 'turn_robber_discard') {
-    statusMessage = '⚠️ Tướng cướp xuất hiện! Những người chơi có >7 thẻ phải xả bớt một nửa số thẻ.';
-  } else if (gameState.phase === 'turn_robber_move') {
-    statusMessage = isMyTurn
-      ? '🦹 Chọn 1 ô lục giác mới để di chuyển Tướng cướp đến đó.'
-      : `🦹 Đang chờ ${gameState.players.find((p) => p.id === activePlayerId)?.name} di chuyển Tướng cướp...`;
-  } else if (gameState.phase === 'turn_robber_steal') {
-    statusMessage = isMyTurn
-      ? '🎯 Chọn 1 đối thủ tại ô vừa cướp để lấy 1 thẻ tài nguyên.'
-      : '🦹 Tướng cướp đang chọn đối thủ để cướp tài nguyên...';
-  } else if (gameState.phase === 'turn_actions') {
-    if (isMyTurn) {
-      if (gameState.roadBuildingRoadsRemaining > 0) {
-        statusMessage = `🛣️ Thẻ Xây đường: Chọn ${gameState.roadBuildingRoadsRemaining} cạnh để đặt đường miễn phí!`;
-      } else if (buildMode === 'road') {
-        statusMessage = '📍 Nhấp vào một cạnh phát sáng trên bàn cờ để xây Đường.';
-      } else if (buildMode === 'settlement') {
-        statusMessage = '📍 Nhấp vào một đỉnh phát sáng trên bàn cờ để xây Làng.';
-      } else if (buildMode === 'city') {
-        statusMessage = '📍 Nhấp vào một Ngôi Làng của bạn trên bàn cờ để nâng cấp lên Thành Phố.';
-      } else {
-        statusMessage = '⚔️ Lượt hành động: Bạn có thể Giao thương, Xây dựng, Dùng thẻ hoặc Kết thúc lượt.';
-      }
-    } else {
-      statusMessage = `⏳ Đang chờ ${gameState.players.find((p) => p.id === activePlayerId)?.name} thực hiện hành động...`;
-    }
-  }
-
   // Cost checks
-  const canAffordRoad = hasEnoughResources(myPlayer, BUILDING_COSTS.road) && myPlayer.roadsLeft > 0;
-  const canAffordSettlement = hasEnoughResources(myPlayer, BUILDING_COSTS.settlement) && myPlayer.settlementsLeft > 0;
-  const canAffordCity = hasEnoughResources(myPlayer, BUILDING_COSTS.city) && myPlayer.citiesLeft > 0;
-  const canAffordDevCard = hasEnoughResources(myPlayer, BUILDING_COSTS.devCard) && gameState.devCardDeck.length > 0;
+  const canAffordRoad =
+    hasEnoughResources(myPlayer, BUILDING_COSTS.road) && myPlayer.roadsLeft > 0;
+  const canAffordSettlement =
+    hasEnoughResources(myPlayer, BUILDING_COSTS.settlement) &&
+    myPlayer.settlementsLeft > 0;
+  const canAffordCity =
+    hasEnoughResources(myPlayer, BUILDING_COSTS.city) && myPlayer.citiesLeft > 0;
+  const canAffordDevCard =
+    hasEnoughResources(myPlayer, BUILDING_COSTS.devCard) &&
+    gameState.devCardDeck.length > 0;
+
+  const dice1 = gameState.lastDiceRoll ? gameState.lastDiceRoll[0] : 3;
+  const dice2 = gameState.lastDiceRoll ? gameState.lastDiceRoll[1] : 5;
 
   return (
-    <div className="flex flex-col items-center gap-3 w-full max-w-4xl mx-auto pointer-events-auto px-2">
-      {/* Dynamic Status Toast Banner */}
-      <div className="flex items-center gap-2 px-5 py-2 rounded-full bg-slate-950/90 backdrop-blur-md border border-amber-500/40 text-amber-200 text-xs sm:text-sm font-medium shadow-2xl animate-fade-in">
-        <span className="text-base">📢</span>
-        <span>{statusMessage}</span>
-      </div>
-
-      {/* Main Action Toolbar */}
-      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 p-2.5 bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-2xl">
-        {/* Roll Dice Button */}
-        {isMyTurn && gameState.phase === 'turn_roll_dice' && (
-          <button
-            onClick={onRollDice}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm sm:text-base shadow-lg shadow-amber-500/30 transform active:scale-95 transition-all animate-bounce"
-          >
-            <Dices className="w-5 h-5" />
-            Gieo Xúc Xắc
-          </button>
-        )}
-
-        {/* Action Phase Buttons */}
-        {isMyTurn && gameState.phase === 'turn_actions' && (
-          <>
-            {/* Build Road */}
-            <button
-              onClick={() => setBuildMode(buildMode === 'road' ? 'none' : 'road')}
-              disabled={!canAffordRoad && gameState.roadBuildingRoadsRemaining === 0}
-              className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm border transition-all ${
-                buildMode === 'road'
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-300'
-                  : canAffordRoad || gameState.roadBuildingRoadsRemaining > 0
-                  ? 'bg-slate-800/90 text-white border-slate-600 hover:bg-slate-700'
-                  : 'bg-slate-900/50 text-slate-500 border-slate-800 cursor-not-allowed'
-              }`}
-              title="1 Gỗ + 1 Gạch"
-            >
-              <Hammer className="w-4 h-4 text-amber-400" />
-              Đường ({myPlayer.roadsLeft})
-            </button>
-
-            {/* Build Settlement */}
-            <button
-              onClick={() => setBuildMode(buildMode === 'settlement' ? 'none' : 'settlement')}
-              disabled={!canAffordSettlement}
-              className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm border transition-all ${
-                buildMode === 'settlement'
-                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 ring-2 ring-emerald-300'
-                  : canAffordSettlement
-                  ? 'bg-slate-800/90 text-white border-slate-600 hover:bg-slate-700'
-                  : 'bg-slate-900/50 text-slate-500 border-slate-800 cursor-not-allowed'
-              }`}
-              title="1 Gỗ + 1 Gạch + 1 Cừu + 1 Lúa mì"
-            >
-              <Building className="w-4 h-4 text-emerald-400" />
-              Làng ({myPlayer.settlementsLeft})
-            </button>
-
-            {/* Upgrade City */}
-            <button
-              onClick={() => setBuildMode(buildMode === 'city' ? 'none' : 'city')}
-              disabled={!canAffordCity}
-              className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm border transition-all ${
-                buildMode === 'city'
-                  ? 'bg-blue-500 text-slate-950 border-blue-400 ring-2 ring-blue-300'
-                  : canAffordCity
-                  ? 'bg-slate-800/90 text-white border-slate-600 hover:bg-slate-700'
-                  : 'bg-slate-900/50 text-slate-500 border-slate-800 cursor-not-allowed'
-              }`}
-              title="2 Lúa mì + 3 Đá"
-            >
-              <Castle className="w-4 h-4 text-blue-400" />
-              Thành phố ({myPlayer.citiesLeft})
-            </button>
-
-            {/* Buy Dev Card */}
-            <button
-              onClick={onBuyDevCard}
-              disabled={!canAffordDevCard}
-              className={`flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm border transition-all ${
-                canAffordDevCard
-                  ? 'bg-purple-900/80 text-purple-200 border-purple-500 hover:bg-purple-800'
-                  : 'bg-slate-900/50 text-slate-500 border-slate-800 cursor-not-allowed'
-              }`}
-              title="1 Cừu + 1 Lúa mì + 1 Đá"
-            >
-              <Layers className="w-4 h-4 text-purple-400" />
-              Mua Thẻ ({gameState.devCardDeck.length})
-            </button>
-
-            {/* Trade Button */}
-            <button
-              onClick={onOpenTrade}
-              className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-600 transition-all"
-            >
-              <ArrowRightLeft className="w-4 h-4 text-amber-400" />
-              Giao Thương
-            </button>
-
-            {/* Play Dev Cards Hand */}
-            {myPlayer.devCards.length > 0 && (
-              <button
-                onClick={onOpenDevCards}
-                className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-purple-950 hover:bg-purple-900 text-purple-300 border border-purple-600 transition-all"
-              >
-                🎴 Thẻ ({myPlayer.devCards.length})
-              </button>
-            )}
-
-            {/* End Turn */}
-            <button
-              onClick={onEndTurn}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-lg shadow-red-600/30 active:scale-95 transition-all ml-1"
-            >
-              <CheckCircle className="w-4 h-4" />
-              Xong Lượt
-            </button>
-          </>
-        )}
-
-        {/* Rulebook Modal Button */}
+    <div className="flex flex-col gap-3 w-full h-full justify-between pointer-events-auto select-none font-catan">
+      
+      {/* 1. MIDDLE: ACTION BUTTONS (Parchment Styled Stack) */}
+      <div className="my-auto flex flex-col gap-2 p-3 bg-black/70 rounded-2xl border-2 border-catan-gold-trim/80 shadow-2xl backdrop-blur-md">
+        {/* Button 1: Xây Đường */}
         <button
-          onClick={onOpenRulebook}
-          className="flex items-center gap-1 px-3 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition-all"
-          title="Xem Sổ tay Luật chơi & Bảng tra cứu"
+          onClick={() =>
+            isMyTurn && setBuildMode(buildMode === 'road' ? 'none' : 'road')
+          }
+          disabled={
+            !isMyTurn ||
+            (!canAffordRoad && gameState.roadBuildingRoadsRemaining === 0)
+          }
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 font-black text-xs sm:text-sm tracking-wide shadow-btn-wood transition-all
+            ${
+              buildMode === 'road'
+                ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-stone-950 border-amber-200 scale-105 shadow-amber-400/40'
+                : isMyTurn &&
+                  (canAffordRoad || gameState.roadBuildingRoadsRemaining > 0)
+                ? 'bg-gradient-to-r from-[#fbf1db] to-[#ecd7b0] text-[#3d2314] border-[#c49b63] hover:scale-[1.02] hover:brightness-105'
+                : 'bg-[#ecd7b0]/40 text-[#3d2314]/40 border-[#c49b63]/30 cursor-not-allowed'
+            }
+          `}
         >
-          <BookOpen className="w-3.5 h-3.5 text-amber-400" />
-          Luật chơi
+          <span className="text-xl">🪵</span>
+          <span className="flex-1 text-left">Xây Đường</span>
+          <span className="text-xs font-sans font-bold opacity-80">({myPlayer.roadsLeft})</span>
+        </button>
+
+        {/* Button 2: Xây Nhà */}
+        <button
+          onClick={() =>
+            isMyTurn &&
+            setBuildMode(buildMode === 'settlement' ? 'none' : 'settlement')
+          }
+          disabled={!isMyTurn || !canAffordSettlement}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 font-black text-xs sm:text-sm tracking-wide shadow-btn-wood transition-all
+            ${
+              buildMode === 'settlement'
+                ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-stone-950 border-amber-200 scale-105 shadow-amber-400/40'
+                : isMyTurn && canAffordSettlement
+                ? 'bg-gradient-to-r from-[#fbf1db] to-[#ecd7b0] text-[#3d2314] border-[#c49b63] hover:scale-[1.02] hover:brightness-105'
+                : 'bg-[#ecd7b0]/40 text-[#3d2314]/40 border-[#c49b63]/30 cursor-not-allowed'
+            }
+          `}
+        >
+          <Home className="w-5 h-5 text-amber-700" />
+          <span className="flex-1 text-left">Xây Nhà</span>
+          <span className="text-xs font-sans font-bold opacity-80">({myPlayer.settlementsLeft})</span>
+        </button>
+
+        {/* Button 3: Xây Thành Phố */}
+        <button
+          onClick={() =>
+            isMyTurn && setBuildMode(buildMode === 'city' ? 'none' : 'city')
+          }
+          disabled={!isMyTurn || !canAffordCity}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 font-black text-xs sm:text-sm tracking-wide shadow-btn-wood transition-all
+            ${
+              buildMode === 'city'
+                ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-stone-950 border-amber-200 scale-105 shadow-amber-400/40'
+                : isMyTurn && canAffordCity
+                ? 'bg-gradient-to-r from-[#fbf1db] to-[#ecd7b0] text-[#3d2314] border-[#c49b63] hover:scale-[1.02] hover:brightness-105'
+                : 'bg-[#ecd7b0]/40 text-[#3d2314]/40 border-[#c49b63]/30 cursor-not-allowed'
+            }
+          `}
+        >
+          <Castle className="w-5 h-5 text-amber-700" />
+          <span className="flex-1 text-left">Xây Thành Phố</span>
+          <span className="text-xs font-sans font-bold opacity-80">({myPlayer.citiesLeft})</span>
+        </button>
+
+        {/* Button 4: Mua Bài Phát Triển */}
+        <button
+          onClick={onBuyDevCard}
+          disabled={!isMyTurn || !canAffordDevCard}
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 font-black text-xs sm:text-sm tracking-wide shadow-btn-wood transition-all
+            ${
+              isMyTurn && canAffordDevCard
+                ? 'bg-gradient-to-r from-[#fbf1db] to-[#ecd7b0] text-[#3d2314] border-[#c49b63] hover:scale-[1.02] hover:brightness-105'
+                : 'bg-[#ecd7b0]/40 text-[#3d2314]/40 border-[#c49b63]/30 cursor-not-allowed'
+            }
+          `}
+        >
+          <Layers className="w-5 h-5 text-amber-700" />
+          <span className="flex-1 text-left">Mua Bài Phát Triển</span>
+          <span className="text-xs font-sans font-bold opacity-80">({gameState.devCardDeck.length})</span>
+        </button>
+
+        {/* Trade quick link */}
+        <button
+          onClick={onOpenTrade}
+          className="flex items-center justify-center gap-2 py-2 rounded-xl bg-catan-ocean/80 hover:bg-catan-ocean text-white font-bold text-xs border border-catan-gold-trim/60 shadow-sm transition-all"
+        >
+          <ArrowRightLeft className="w-4 h-4" /> Giao Thương / Trao Đổi
         </button>
       </div>
+
+      {/* 3. BOTTOM RIGHT: 3D DICE BOWL & END TURN BUTTON */}
+      <div className="flex flex-col items-center gap-2.5">
+        {/* Circular Dice Bowl */}
+        <div
+          onClick={() => {
+            if (isMyTurn && gameState.phase === 'turn_roll_dice') {
+              onRollDice();
+            }
+          }}
+          className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-b from-[#2d1b11] to-[#120a06] border-4 border-catan-gold-trim/90 flex items-center justify-center gap-2 shadow-[0_15px_30px_rgba(0,0,0,0.8)] cursor-pointer group transition-transform
+            ${
+              isMyTurn && gameState.phase === 'turn_roll_dice'
+                ? 'ring-4 ring-amber-400/80 animate-bounce'
+                : 'hover:scale-105'
+            }
+          `}
+          title="Bấm để đổ xúc xắc"
+        >
+          <div className="absolute inset-2 rounded-full shadow-inset-wood pointer-events-none" />
+          <DiceFace value={dice1} />
+          <DiceFace value={dice2} />
+        </div>
+
+        {/* Big End Turn Button */}
+        <button
+          onClick={onEndTurn}
+          disabled={!isMyTurn || gameState.phase === 'turn_roll_dice'}
+          className={`w-full py-3 sm:py-3.5 px-6 rounded-2xl border-2 sm:border-3 font-black text-sm sm:text-base tracking-widest uppercase shadow-2xl transition-all font-catan
+            ${
+              isMyTurn && gameState.phase === 'turn_actions'
+                ? 'bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 text-catan-gold-trim border-catan-gold-trim hover:brightness-125 active:scale-95 shadow-amber-500/20'
+                : 'bg-black/60 text-catan-parchment/40 border-catan-dark-wood cursor-not-allowed'
+            }
+          `}
+        >
+          KẾT THÚC LƯỢT
+        </button>
+      </div>
+
     </div>
   );
 };

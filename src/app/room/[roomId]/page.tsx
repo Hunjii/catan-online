@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams } from 'next/navigation';
+import Image from 'next/image';
+import { useParams, useRouter } from 'next/navigation';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { useMultiplayer } from '@/hooks/useMultiplayer';
 import { LobbyRoom } from '@/components/ui/LobbyRoom';
-import { CatanScene } from '@/components/3d/CatanScene';
+import { Board2D } from '@/components/2d/Board2D';
 import { PlayerDashboard } from '@/components/ui/PlayerDashboard';
+import { PlayerHand } from '@/components/ui/PlayerHand';
 import { ActionPanel } from '@/components/ui/ActionPanel';
 import { TradeModal } from '@/components/ui/TradeModal';
 import { DevCardModal } from '@/components/ui/DevCardModal';
@@ -15,10 +17,19 @@ import { RulebookModal } from '@/components/ui/RulebookModal';
 import { ProfileModal } from '@/components/ui/ProfileModal';
 import { ChatBox } from '@/components/ui/ChatBox';
 import { VictoryModal } from '@/components/ui/VictoryModal';
-import { Loader2, Wifi, WifiOff } from 'lucide-react';
+import {
+  Loader2,
+  Wifi,
+  WifiOff,
+  Menu,
+  Dices,
+  HelpCircle,
+  Settings,
+} from 'lucide-react';
 
 export default function GameRoomPage() {
   const params = useParams();
+  const router = useRouter();
   const roomId = (params.roomId as string)?.toUpperCase() || 'DEFAULT';
 
   const { profile, updateProfile, isLoaded: isProfileLoaded } = usePlayerProfile();
@@ -37,11 +48,11 @@ export default function GameRoomPage() {
 
   if (!isProfileLoaded || !gameState) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 gap-4 font-catan">
         <Loader2 className="w-10 h-10 text-amber-400 animate-spin" />
         <div className="text-center">
-          <h2 className="text-lg font-bold text-white">Đang kết nối phòng {roomId}...</h2>
-          <p className="text-xs text-slate-400 mt-1">Đang thiết lập mạng P2P WebRTC serverless</p>
+          <h2 className="text-xl font-bold text-catan-gold-trim">Đang kết nối phòng {roomId}...</h2>
+          <p className="text-xs text-slate-400 mt-1 font-sans">Đang thiết lập mạng P2P WebRTC serverless</p>
         </div>
       </div>
     );
@@ -50,29 +61,17 @@ export default function GameRoomPage() {
   // 1. Lobby Phase
   if (gameState.phase === 'lobby') {
     return (
-      <div className="relative min-h-screen bg-slate-950 overflow-hidden">
-        {/* Connection Badge */}
-        <div className="absolute top-4 left-4 z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-md border border-slate-700 text-xs">
-          {status === 'connected' ? (
-            <>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-emerald-300 font-medium">Đã kết nối {isHost ? '(Host)' : '(Client)'}</span>
-            </>
-          ) : (
-            <>
-              <WifiOff className="w-3.5 h-3.5 text-amber-400" />
-              <span className="text-amber-300 font-medium">{status}...</span>
-            </>
-          )}
-        </div>
-
+      <div className="relative min-h-screen bg-slate-950 overflow-hidden font-catan">
         <LobbyRoom
           gameState={gameState}
           currentUserId={profile.id}
           isHost={isHost}
+          status={status}
           roomId={roomId}
           onStartGame={() => dispatch({ type: 'START_GAME' })}
-          onSetReady={(ready) => dispatch({ type: 'SET_READY', playerId: profile.id, isReady: ready })}
+          onSetReady={(ready) =>
+            dispatch({ type: 'SET_READY', playerId: profile.id, isReady: ready })
+          }
           onOpenProfile={() => setIsProfileOpen(true)}
           onOpenRulebook={() => setIsRulebookOpen(true)}
         />
@@ -93,12 +92,15 @@ export default function GameRoomPage() {
             });
           }}
         />
-        <RulebookModal isOpen={isRulebookOpen} onClose={() => setIsRulebookOpen(false)} />
+        <RulebookModal
+          isOpen={isRulebookOpen}
+          onClose={() => setIsRulebookOpen(false)}
+        />
       </div>
     );
   }
 
-  // 2. Active Game Phase (3D Canvas + HUD)
+  // 2. Active Game Phase (Full 100vw/100vh Canvas + Floating Transparent HUD)
   const handleSelectVertex = (vertexId: string) => {
     if (gameState.phase === 'setup_round_1' || gameState.phase === 'setup_round_2') {
       if (gameState.setupSubStep === 'place_settlement') {
@@ -137,53 +139,138 @@ export default function GameRoomPage() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-slate-950 select-none">
-      {/* 3D Catan Scene */}
-      <CatanScene
-        gameState={gameState}
-        currentUserId={profile.id}
-        buildMode={buildMode}
-        onSelectVertex={handleSelectVertex}
-        onSelectEdge={handleSelectEdge}
-        onSelectHex={handleSelectHex}
-      />
-
-      {/* Top and Bottom Player Dashboard HUD */}
-      <div className="absolute inset-0 pointer-events-none flex flex-col justify-between z-20">
-        <PlayerDashboard gameState={gameState} currentUserId={profile.id} />
+    <div className="relative w-screen h-screen overflow-hidden select-none font-catan">
+      
+      {/* Realistic Deep Blue Ocean Water Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <Image
+          src="/assets/bg_ocean.jpg"
+          alt="Ocean Background"
+          fill
+          className="object-cover object-center scale-105"
+          priority
+        />
+        {/* Soft Ambient Depth Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 pointer-events-none" />
       </div>
 
-      {/* Floating Action Controls */}
-      <div className="absolute bottom-24 sm:bottom-28 left-0 right-0 z-30 pointer-events-none">
-        <ActionPanel
+      {/* 1. FULLSCREEN 2D BOARD CANVAS (100% width & height with Pan & Zoom) */}
+      <div className="absolute inset-0 w-full h-full z-10">
+        <Board2D
           gameState={gameState}
           currentUserId={profile.id}
           buildMode={buildMode}
-          setBuildMode={setBuildMode}
-          onRollDice={() => dispatch({ type: 'ROLL_DICE', playerId: profile.id })}
-          onBuyDevCard={() => dispatch({ type: 'BUY_DEV_CARD', playerId: profile.id })}
-          onEndTurn={() => dispatch({ type: 'END_TURN', playerId: profile.id })}
-          onOpenTrade={() => setIsTradeOpen(true)}
-          onOpenDevCards={() => setIsDevCardsOpen(true)}
-          onOpenRulebook={() => setIsRulebookOpen(true)}
+          onSelectVertex={handleSelectVertex}
+          onSelectEdge={handleSelectEdge}
+          onSelectHex={handleSelectHex}
         />
       </div>
 
-      {/* Real-time Chat Box */}
-      <ChatBox
-        gameState={gameState}
-        currentUserId={profile.id}
-        onSendMessage={(msg) => dispatch({ type: 'SEND_CHAT', message: msg })}
-      />
+      {/* 2. FLOATING TRANSPARENT TOP HEADER */}
+      <header className="absolute top-0 inset-x-0 z-30 p-3 sm:p-4 flex items-center justify-between pointer-events-none">
+        {/* Top Left: Hamburger + CATAN Logo Box */}
+        <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-black/75 border-2 border-catan-gold-trim/80 shadow-2xl backdrop-blur-md pointer-events-auto">
+          <button
+            onClick={() => router.push('/')}
+            className="text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform"
+            title="Về Trang Chủ"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <span className="font-black text-xl sm:text-2xl tracking-widest text-catan-gold-trim drop-shadow pl-1">
+            CATAN
+          </span>
+        </div>
 
-      {/* Interactive Modals */}
+        {/* Top Right: 3 Action Badges */}
+        <div className="flex items-center gap-2 pointer-events-auto">
+          {/* Dice stats icon */}
+          <button
+            onClick={() => dispatch({ type: 'ROLL_DICE', playerId: profile.id })}
+            className="w-10 h-10 rounded-full bg-black/75 border-2 border-catan-gold-trim/80 flex items-center justify-center text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform shadow-xl"
+            title="Đổ Xúc Xắc"
+          >
+            <Dices className="w-5 h-5" />
+          </button>
+
+          {/* Rules / Help icon */}
+          <button
+            onClick={() => setIsRulebookOpen(true)}
+            className="w-10 h-10 rounded-full bg-black/75 border-2 border-catan-gold-trim/80 flex items-center justify-center text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform shadow-xl"
+            title="Tra Cứu Luật Chơi"
+          >
+            <HelpCircle className="w-5 h-5" />
+          </button>
+
+          {/* Settings gear icon */}
+          <button
+            onClick={() => setIsProfileOpen(true)}
+            className="w-10 h-10 rounded-full bg-black/75 border-2 border-catan-gold-trim/80 flex items-center justify-center text-catan-gold-trim hover:scale-110 active:scale-95 transition-transform shadow-xl"
+            title="Cài Đặt"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        </div>
+      </header>
+
+      {/* 3. FLOATING LEFT COLUMN: Players List (Middle) & Chat (Bottom-Left) */}
+      <div className="absolute left-3 sm:left-4 top-16 bottom-3 sm:bottom-4 w-64 sm:w-72 md:w-80 flex flex-col justify-between pointer-events-none z-20">
+        {/* Middle: 4 Players Pods (Vertically Centered on Left) */}
+        <div className="my-auto py-1 pointer-events-auto">
+          <PlayerDashboard gameState={gameState} currentUserId={profile.id} />
+        </div>
+
+        {/* Bottom: Activity Log & Chat Box (Anchored at Bottom-Left) */}
+        <div className="mt-auto pointer-events-auto">
+          <ChatBox
+            gameState={gameState}
+            currentUserId={profile.id}
+            onSendMessage={(msg) => dispatch({ type: 'SEND_CHAT', message: msg })}
+          />
+        </div>
+      </div>
+
+      {/* 4. FLOATING RIGHT COLUMN: Actions, Resources & Dice Bowl */}
+      <div className="absolute right-3 sm:right-4 top-16 bottom-3 sm:bottom-4 w-64 sm:w-72 md:w-80 flex flex-col justify-between pointer-events-none z-20">
+        <div className="w-full h-full flex flex-col justify-between pointer-events-auto">
+          <ActionPanel
+            gameState={gameState}
+            currentUserId={profile.id}
+            buildMode={buildMode}
+            setBuildMode={setBuildMode}
+            onRollDice={() => dispatch({ type: 'ROLL_DICE', playerId: profile.id })}
+            onBuyDevCard={() => dispatch({ type: 'BUY_DEV_CARD', playerId: profile.id })}
+            onEndTurn={() => dispatch({ type: 'END_TURN', playerId: profile.id })}
+            onOpenTrade={() => setIsTradeOpen(true)}
+            onOpenDevCards={() => setIsDevCardsOpen(true)}
+            onOpenRulebook={() => setIsRulebookOpen(true)}
+          />
+        </div>
+      </div>
+
+      {/* 5. FLOATING BOTTOM CENTER: Player's Resource Cards Hand */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-4xl flex justify-center px-4">
+        <PlayerHand
+          gameState={gameState}
+          currentUserId={profile.id}
+          onOpenDevCards={() => setIsDevCardsOpen(true)}
+        />
+      </div>
+
+      {/* INTERACTIVE MODALS */}
       <TradeModal
         isOpen={isTradeOpen}
         onClose={() => setIsTradeOpen(false)}
         gameState={gameState}
         currentUserId={profile.id}
         onExecuteBankTrade={(give, count, get) => {
-          dispatch({ type: 'EXECUTE_BANK_TRADE', playerId: profile.id, give, giveCount: count, get });
+          dispatch({
+            type: 'EXECUTE_BANK_TRADE',
+            playerId: profile.id,
+            give,
+            giveCount: count,
+            get,
+          });
           setIsTradeOpen(false);
         }}
         onCreateTradeOffer={(giving, requesting) => {

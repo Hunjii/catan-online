@@ -48,6 +48,7 @@ export function createInitialGameState(roomId: string): GameState {
     activePlayerIndex: 0,
     phase: 'lobby',
     setupSubStep: 'place_settlement',
+    setupLastPlacedVertexId: null,
     turnNumber: 0,
     hexes: board.hexes,
     vertices: board.vertices,
@@ -361,7 +362,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const player = nextState.players.find((p) => p.id === activePlayerId);
       if (!vertex || !player || player.settlementsLeft <= 0) return nextState;
 
-      vertex.building = { type: 'settlement', playerId: activePlayerId };
+      vertex.building = { type: 'settlement', playerId: activePlayerId, color: player.color };
       player.settlementsLeft--;
 
       // If this is Round 2 Setup, grant initial resources from surrounding hexes
@@ -385,6 +386,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       }
 
       nextState.setupSubStep = 'place_road';
+      nextState.setupLastPlacedVertexId = action.vertexId;
       addLog(nextState, `${player.name} đã đặt Làng. Hãy đặt 1 Con đường nối từ làng này.`, 'build', player.id);
       recalculatePlayerStats(nextState);
       return nextState;
@@ -399,17 +401,17 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const edge = nextState.edges.find((e) => e.id === action.edgeId);
       if (!player || !edge || player.roadsLeft <= 0) return nextState;
 
-      // Find the most recently placed settlement by this player
-      const playerSettlements = nextState.vertices.filter(
+      // Find connecting vertex: prioritize setupLastPlacedVertexId
+      const targetVertexId = nextState.setupLastPlacedVertexId || nextState.vertices.filter(
         (v) => v.building?.playerId === activePlayerId && v.building.type === 'settlement'
-      );
-      const latestSettlement = playerSettlements[playerSettlements.length - 1];
+      ).pop()?.id;
 
-      const isValid = isValidRoadPlacement(nextState, action.edgeId, activePlayerId, latestSettlement?.id);
+      const isValid = isValidRoadPlacement(nextState, action.edgeId, activePlayerId, targetVertexId);
       if (!isValid) return nextState;
 
-      edge.road = { playerId: activePlayerId };
+      edge.road = { playerId: activePlayerId, color: player.color };
       player.roadsLeft--;
+      nextState.setupLastPlacedVertexId = null;
       addLog(nextState, `${player.name} đã đặt Con đường khởi đầu.`, 'build', player.id);
 
       // Snake Draft Progression:
@@ -648,7 +650,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         nextState.roadBuildingRoadsRemaining--;
       }
 
-      edge.road = { playerId: activePlayerId };
+      edge.road = { playerId: activePlayerId, color: player.color };
       player.roadsLeft--;
 
       addLog(nextState, `${player.name} đã xây 1 Con đường mới.`, 'build', player.id);
@@ -672,7 +674,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       player.resources.sheep -= 1;
       player.resources.wheat -= 1;
 
-      vertex.building = { type: 'settlement', playerId: activePlayerId };
+      vertex.building = { type: 'settlement', playerId: activePlayerId, color: player.color };
       player.settlementsLeft--;
 
       addLog(nextState, `🏠 ${player.name} đã xây 1 Ngôi làng mới (+1 VP).`, 'build', player.id);
@@ -696,7 +698,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       player.resources.wheat -= 2;
       player.resources.ore -= 3;
 
-      vertex.building = { type: 'city', playerId: activePlayerId };
+      vertex.building = { type: 'city', playerId: activePlayerId, color: player.color };
       player.settlementsLeft++;
       player.citiesLeft--;
 

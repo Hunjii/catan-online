@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GameState, ResourceType } from '@/lib/catan/types';
-import { COLOR_MAP } from '../3d/Settlement3D';
+import { GameState, ResourceType, COLOR_MAP } from '@/lib/catan/types';
 import { Skull, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 interface RobberModalProps {

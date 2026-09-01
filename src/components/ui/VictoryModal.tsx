@@ -2,8 +2,7 @@
 
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { GameState } from '@/lib/catan/types';
-import { COLOR_MAP } from '../3d/Settlement3D';
+import { GameState, COLOR_MAP } from '@/lib/catan/types';
 import { Trophy, Crown, RotateCcw, Home } from 'lucide-react';
 import Link from 'next/link';
 

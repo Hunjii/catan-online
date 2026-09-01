@@ -1,21 +1,67 @@
 'use client';
 
 import React from 'react';
-import { GameState, Player, ResourceType, PlayerColor } from '@/lib/catan/types';
-import { COLOR_MAP } from '../3d/Settlement3D';
-import { Sparkles, Trophy, Shield, Navigation } from 'lucide-react';
+import Image from 'next/image';
+import { GameState, PlayerColor, COLOR_MAP } from '@/lib/catan/types';
+import { Star, Layers, Shield, Navigation } from 'lucide-react';
 
 interface PlayerDashboardProps {
   gameState: GameState;
   currentUserId: string;
 }
 
-const RESOURCE_ICONS: Record<ResourceType, { name: string; icon: string; bg: string; border: string }> = {
-  wood: { name: 'Gỗ', icon: '🌲', bg: 'bg-emerald-950/80', border: 'border-emerald-500' },
-  brick: { name: 'Gạch', icon: '🧱', bg: 'bg-amber-950/80', border: 'border-amber-600' },
-  sheep: { name: 'Cừu', icon: '🐑', bg: 'bg-lime-950/80', border: 'border-lime-500' },
-  wheat: { name: 'Lúa mì', icon: '🌾', bg: 'bg-yellow-950/80', border: 'border-yellow-500' },
-  ore: { name: 'Đá quặng', icon: '⛰️', bg: 'bg-slate-900/80', border: 'border-slate-400' },
+const PLAYER_THEMES: Record<
+  PlayerColor,
+  { gradient: string; border: string; activeGlow: string; ringColor: string }
+> = {
+  red: {
+    gradient: 'bg-gradient-to-r from-red-950/90 via-red-900/80 to-black/80',
+    border: 'border-red-600/90',
+    activeGlow: 'ring-4 ring-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.5)]',
+    ringColor: 'border-red-400',
+  },
+  blue: {
+    gradient: 'bg-gradient-to-r from-blue-950/90 via-blue-900/80 to-black/80',
+    border: 'border-blue-600/90',
+    activeGlow: 'ring-4 ring-blue-500/60 shadow-[0_0_20px_rgba(59,130,246,0.5)]',
+    ringColor: 'border-blue-400',
+  },
+  green: {
+    gradient: 'bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-black/80',
+    border: 'border-emerald-600/90',
+    activeGlow: 'ring-4 ring-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.5)]',
+    ringColor: 'border-emerald-400',
+  },
+  orange: {
+    gradient: 'bg-gradient-to-r from-amber-950/90 via-yellow-950/80 to-black/80',
+    border: 'border-amber-600/90',
+    activeGlow: 'ring-4 ring-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.5)]',
+    ringColor: 'border-amber-400',
+  },
+  yellow: {
+    gradient: 'bg-gradient-to-r from-yellow-950/90 via-amber-900/80 to-black/80',
+    border: 'border-yellow-500/90',
+    activeGlow: 'ring-4 ring-yellow-400/60 shadow-[0_0_20px_rgba(234,179,8,0.5)]',
+    ringColor: 'border-yellow-400',
+  },
+  brown: {
+    gradient: 'bg-gradient-to-r from-amber-950/90 via-stone-900/80 to-black/80',
+    border: 'border-amber-800/90',
+    activeGlow: 'ring-4 ring-amber-700/60 shadow-[0_0_20px_rgba(120,53,15,0.5)]',
+    ringColor: 'border-amber-700',
+  },
+  purple: {
+    gradient: 'bg-gradient-to-r from-purple-950/90 via-purple-900/80 to-black/80',
+    border: 'border-purple-600/90',
+    activeGlow: 'ring-4 ring-purple-500/60 shadow-[0_0_20px_rgba(168,85,247,0.5)]',
+    ringColor: 'border-purple-400',
+  },
+  white: {
+    gradient: 'bg-gradient-to-r from-slate-900/90 via-slate-800/80 to-black/80',
+    border: 'border-slate-400/90',
+    activeGlow: 'ring-4 ring-slate-300/60 shadow-[0_0_20px_rgba(248,250,252,0.5)]',
+    ringColor: 'border-slate-300',
+  },
 };
 
 export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
@@ -23,133 +69,109 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
   currentUserId,
 }) => {
   const activePlayerId = gameState.playerOrder[gameState.activePlayerIndex];
-  const myPlayer = gameState.players.find((p) => p.id === currentUserId);
 
   return (
-    <div className="w-full flex flex-col justify-between pointer-events-none p-4 select-none">
-      {/* Top Player List Bar */}
-      <div className="flex flex-wrap items-center gap-3 max-w-full overflow-x-auto pb-2 pointer-events-auto">
-        {gameState.playerOrder.map((playerId, index) => {
-          const player = gameState.players.find((p) => p.id === playerId);
-          if (!player) return null;
+    <div className="w-full flex flex-col gap-2.5 pointer-events-auto select-none font-catan">
+      {gameState.playerOrder.map((playerId) => {
+        const player = gameState.players.find((p) => p.id === playerId);
+        if (!player) return null;
 
-          const isActive = playerId === activePlayerId;
-          const isMe = playerId === currentUserId;
-          const totalCards = Object.values(player.resources).reduce((a, b) => a + b, 0);
+        const isActive = playerId === activePlayerId;
+        const isMe = playerId === currentUserId;
+        const totalCards = Object.values(player.resources).reduce(
+          (a, b) => a + b,
+          0
+        );
+        const theme = PLAYER_THEMES[player.color] || PLAYER_THEMES.red;
 
-          return (
-            <div
-              key={player.id}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl backdrop-blur-md transition-all duration-300 border shadow-lg ${
+        return (
+          <div
+            key={player.id}
+            className={`flex items-center gap-3 px-3 py-2 rounded-2xl border-2 sm:border-3 transition-all duration-300 relative overflow-hidden shadow-xl
+              ${theme.gradient} ${theme.border}
+              ${
                 isActive
-                  ? 'bg-slate-900/90 border-amber-400 ring-2 ring-amber-400/50 scale-105 shadow-amber-500/20'
-                  : 'bg-slate-900/75 border-slate-700/60'
-              }`}
+                  ? `${theme.activeGlow} scale-[1.03] z-10`
+                  : 'opacity-90 hover:opacity-100 hover:scale-[1.01]'
+              }
+            `}
+          >
+            {/* Skeuomorphic inner bevel */}
+            <div className="absolute inset-0 shadow-inset-wood pointer-events-none rounded-2xl" />
+
+            {/* Avatar Circle with Gold/Color Rim */}
+            <div
+              className={`relative w-11 h-11 sm:w-13 sm:h-13 rounded-full overflow-hidden border-2 shadow-md shrink-0 bg-catan-dark-wood ${theme.ringColor}`}
             >
-              {/* Color Dot & Avatar */}
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white shadow-inner text-xs border-2 border-white/40"
-                style={{ backgroundColor: COLOR_MAP[player.color] }}
-              >
-                {player.name.substring(0, 2).toUpperCase()}
-              </div>
-
-              {/* Name & VP */}
-              <div className="flex flex-col">
-                <div className="flex items-center gap-1.5">
-                  <span className={`text-sm font-semibold truncate max-w-[110px] ${isMe ? 'text-amber-300' : 'text-slate-100'}`}>
-                    {player.name} {isMe && '(Bạn)'}
-                  </span>
-                  {isActive && (
-                    <span className="flex h-2 w-2 relative">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-                    </span>
-                  )}
-                </div>
-
-                {/* Stats row */}
-                <div className="flex items-center gap-2 text-xs text-slate-300">
-                  <span className="flex items-center gap-0.5 text-amber-400 font-bold">
-                    <Trophy className="w-3 h-3" /> {isMe ? player.victoryPoints : player.publicVictoryPoints} VP
-                  </span>
-                  <span>•</span>
-                  <span>🃏 {totalCards} lá</span>
-                  {player.devCards.length > 0 && <span>• 🎴 {player.devCards.length}</span>}
-                </div>
-              </div>
-
-              {/* Special Badges */}
-              <div className="flex items-center gap-1 pl-1">
-                {player.hasLongestRoad && (
-                  <span className="px-1.5 py-0.5 rounded bg-blue-600/80 text-[10px] font-bold text-white border border-blue-400 flex items-center gap-0.5" title="Con đường dài nhất (+2 VP)">
-                    <Navigation className="w-2.5 h-2.5" /> {player.longestRoadLength}
-                  </span>
-                )}
-                {player.hasLargestArmy && (
-                  <span className="px-1.5 py-0.5 rounded bg-red-600/80 text-[10px] font-bold text-white border border-red-400 flex items-center gap-0.5" title="Đội quân lớn nhất (+2 VP)">
-                    <Shield className="w-2.5 h-2.5" /> {player.playedKnights}
-                  </span>
-                )}
-              </div>
+              {(() => {
+                let avatarSrc = '/assets/avatar_hung_orig.png';
+                if (player.name === 'Mai' || player.color === 'blue') avatarSrc = '/assets/avatar_mai_orig.png';
+                else if (player.name === 'Nam' || player.color === 'green') avatarSrc = '/assets/avatar_nam_orig.png';
+                else if (player.name === 'Linh' || player.color === 'orange') avatarSrc = '/assets/avatar_linh_orig.png';
+                
+                return (
+                  <Image
+                    src={avatarSrc}
+                    alt={player.name}
+                    fill
+                    className="object-cover"
+                    sizes="48px"
+                  />
+                );
+              })()}
             </div>
-          );
-        })}
-      </div>
 
-      {/* Bottom Inventory Bar (My Resources & Dev Cards) */}
-      {myPlayer && (
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-auto pointer-events-auto">
-          {/* Resource Cards Hand */}
-          <div className="flex items-center gap-2 p-2 bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-700/80 shadow-2xl">
-            {(['wood', 'brick', 'sheep', 'wheat', 'ore'] as ResourceType[]).map((res) => {
-              const count = myPlayer.resources[res] || 0;
-              const info = RESOURCE_ICONS[res];
-
-              return (
-                <div
-                  key={res}
-                  className={`flex flex-col items-center justify-between w-14 h-20 sm:w-16 sm:h-22 rounded-xl p-1.5 transition-all duration-200 border ${
-                    count > 0
-                      ? `${info.bg} ${info.border} shadow-md scale-100 hover:-translate-y-1`
-                      : 'bg-slate-900/40 border-slate-800 opacity-60'
+            {/* Player Info (Name, VP Star, Resource Count) */}
+            <div className="flex flex-col flex-1 z-10 min-w-0">
+              <div className="flex items-center justify-between gap-1">
+                <span
+                  className={`text-sm sm:text-base font-black truncate tracking-wide ${
+                    isActive ? 'text-white' : 'text-catan-parchment'
                   }`}
                 >
-                  <span className="text-xl sm:text-2xl">{info.icon}</span>
-                  <span className="text-[10px] sm:text-xs font-medium text-slate-200 truncate w-full text-center">
-                    {info.name}
-                  </span>
-                  <span
-                    className={`text-sm sm:text-base font-black px-1.5 py-0.5 rounded-full ${
-                      count > 0 ? 'bg-black/50 text-amber-300' : 'text-slate-500'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+                  {player.name} {isMe && '(Bạn)'}
+                </span>
+              </div>
 
-          {/* Quick Summary Pill */}
-          <div className="hidden md:flex items-center gap-3 px-4 py-3 bg-slate-950/80 backdrop-blur-md rounded-2xl border border-slate-700 text-xs text-slate-300 shadow-xl">
-            <div>
-              <span className="text-slate-400">Đường còn lại:</span>{' '}
-              <strong className="text-white">{myPlayer.roadsLeft}</strong>
+              {/* Stats: Star VP & Cards */}
+              <div className="flex items-center gap-3 text-xs text-amber-200/90 font-bold mt-0.5 font-sans">
+                <span className="flex items-center gap-1 text-amber-300 drop-shadow">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />{' '}
+                  {isMe ? player.victoryPoints : player.publicVictoryPoints}
+                </span>
+                <span className="flex items-center gap-1 text-slate-200 drop-shadow">
+                  <Layers className="w-3.5 h-3.5 text-amber-300" /> {totalCards}
+                </span>
+                {player.devCards.length > 0 && (
+                  <span className="text-[11px] text-purple-300">
+                    🎴 {player.devCards.length}
+                  </span>
+                )}
+              </div>
             </div>
-            <span>|</span>
-            <div>
-              <span className="text-slate-400">Làng:</span>{' '}
-              <strong className="text-white">{myPlayer.settlementsLeft}</strong>
-            </div>
-            <span>|</span>
-            <div>
-              <span className="text-slate-400">Thành phố:</span>{' '}
-              <strong className="text-white">{myPlayer.citiesLeft}</strong>
+
+            {/* Special Badges (Longest Road / Largest Army) */}
+            <div className="flex flex-col items-end gap-1 z-10">
+              {player.hasLongestRoad && (
+                <span
+                  className="px-1.5 py-0.5 rounded-full bg-blue-600/90 text-[10px] font-bold text-white border border-blue-400 flex items-center gap-0.5 shadow-sm"
+                  title="Con đường dài nhất (+2 VP)"
+                >
+                  <Navigation className="w-2.5 h-2.5" /> {player.longestRoadLength}
+                </span>
+              )}
+              {player.hasLargestArmy && (
+                <span
+                  className="px-1.5 py-0.5 rounded-full bg-red-600/90 text-[10px] font-bold text-white border border-red-400 flex items-center gap-0.5 shadow-sm"
+                  title="Đội quân lớn nhất (+2 VP)"
+                >
+                  <Shield className="w-2.5 h-2.5" /> {player.playedKnights}
+                </span>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        );
+      })}
     </div>
   );
 };

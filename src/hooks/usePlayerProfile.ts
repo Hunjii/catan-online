@@ -1,13 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { PlayerColor, PieceStyle } from '@/lib/catan/types';
+import { PlayerColor, PieceStyle, AvatarId, TileSetStyle } from '@/lib/catan/types';
 import { soundEngine } from '@/lib/audio/soundEngine';
 
 export interface PlayerProfile {
   id: string;
   name: string;
   color: PlayerColor;
+  avatar: AvatarId;
+  tileSetStyle: TileSetStyle;
   pieceStyle: PieceStyle;
   avatarSeed: string;
   soundVolume: number;
@@ -17,21 +19,21 @@ export interface PlayerProfile {
 const STORAGE_KEY = 'catan_3d_player_profile';
 
 function generateRandomName(): string {
-  const adjectives = ['Hào Hiệp', 'Dũng Cảm', 'Khôn Ngoan', 'Bí Ẩn', 'Thần Tốc', 'Kiên Cường', 'Vui Vẻ', 'Bất Khả Chiến Bại'];
-  const nouns = ['Lãnh Chúa', 'Thương Nhân', 'Hiệp Sĩ', 'Nhà Khai Hoang', 'Nhà Giả Kim', 'Thuyền Trưởng', 'Bá Tước', 'Đại Gia'];
-  const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const titles = ['Alexander', 'Elara', 'Magnus', 'Lyra', 'Khai Hoang', 'Lãnh Chúa', 'Thương Nhân'];
+  const name = titles[Math.floor(Math.random() * titles.length)];
   const num = Math.floor(Math.random() * 900) + 100;
-  return `${noun} ${adj} #${num}`;
+  return `${name} #${num}`;
 }
 
-const DEFAULT_COLORS: PlayerColor[] = ['red', 'blue', 'orange', 'white', 'green', 'purple'];
+const DEFAULT_COLORS: PlayerColor[] = ['red', 'blue', 'green', 'yellow', 'orange', 'brown'];
 
 export function usePlayerProfile() {
   const [profile, setProfile] = useState<PlayerProfile>({
     id: '',
-    name: '',
+    name: 'Alexander',
     color: 'red',
+    avatar: 'alexander',
+    tileSetStyle: 'classic',
     pieceStyle: 'classic_wood',
     avatarSeed: '',
     soundVolume: 0.7,
@@ -46,17 +48,22 @@ export function usePlayerProfile() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        setProfile(parsed);
+        setProfile({
+          ...parsed,
+          avatar: parsed.avatar || 'alexander',
+          tileSetStyle: parsed.tileSetStyle || 'classic',
+          color: parsed.color || 'red',
+        });
         soundEngine.setVolume(parsed.soundVolume ?? 0.7);
         soundEngine.setMuted(parsed.soundMuted ?? false);
       } else {
         const newId = 'player_' + Math.random().toString(36).substring(2, 9);
-        const randomName = generateRandomName();
-        const randomColor = DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)];
         const initial: PlayerProfile = {
           id: newId,
-          name: randomName,
-          color: randomColor,
+          name: 'Alexander',
+          color: 'red',
+          avatar: 'alexander',
+          tileSetStyle: 'classic',
           pieceStyle: 'classic_wood',
           avatarSeed: newId,
           soundVolume: 0.7,

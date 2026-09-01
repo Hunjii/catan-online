@@ -12,7 +12,22 @@ export type PortType =
   | 'wheat_2_1'
   | 'ore_2_1';
 
-export type PlayerColor = 'red' | 'blue' | 'orange' | 'white' | 'green' | 'purple';
+export type PlayerColor = 'red' | 'blue' | 'green' | 'yellow' | 'orange' | 'brown' | 'white' | 'purple';
+
+export const COLOR_MAP: Record<PlayerColor, string> = {
+  red: '#e11d48',
+  blue: '#0284c7',
+  green: '#16a34a',
+  yellow: '#eab308',
+  orange: '#ea580c',
+  brown: '#78350f',
+  white: '#f8fafc',
+  purple: '#9333ea',
+};
+
+export type AvatarId = 'alexander' | 'elara' | 'magnus' | 'lyra';
+
+export type TileSetStyle = 'classic' | 'art_nouveau' | 'viking' | 'fantasy';
 
 export type PieceStyle = 'classic_wood' | 'medieval' | 'modern';
 
@@ -56,6 +71,7 @@ export interface Vertex {
   building: {
     type: 'settlement' | 'city';
     playerId: string;
+    color?: PlayerColor;
   } | null;
   port: {
     type: PortType;
@@ -72,6 +88,7 @@ export interface Edge {
   rotationY: number; // Angle for 3D road placement
   road: {
     playerId: string;
+    color?: PlayerColor;
   } | null;
 }
 
@@ -159,6 +176,7 @@ export interface GameState {
 
   phase: GamePhase;
   setupSubStep: SetupSubStep;
+  setupLastPlacedVertexId: string | null;
   turnNumber: number;
 
   // Board
