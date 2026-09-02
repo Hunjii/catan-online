@@ -70,7 +70,7 @@ export default function HomePage() {
               <h1 className="text-2xl sm:text-4xl md:text-5xl font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-b from-[#fff3b0] via-[#e5b84c] to-[#966318] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] leading-none font-serif">
                 CATAN
               </h1>
-              <span className="text-[9px] sm:text-xs md:text-sm text-[#e0b560] tracking-[0.18em] font-sans font-bold uppercase mt-0.5 drop-shadow flex items-center gap-1">
+              <span className="text-[9px] sm:text-xs md:text-sm text-[#e0b560] tracking-[0.14em] font-vietnam font-bold uppercase mt-0.5 drop-shadow flex items-center gap-1">
                 <span className="text-[8px] sm:text-[10px] opacity-75">❖</span> ĐẢO CATAN HUYỀN THOẠI <span className="text-[8px] sm:text-[10px] opacity-75">❖</span>
               </span>
             </div>
@@ -78,13 +78,10 @@ export default function HomePage() {
 
           {/* Right: Profile Panel + Settings */}
           <div className="flex items-center gap-2 sm:gap-3 pr-1 sm:pr-2">
-            {/* Profile Card Button */}
-            <button
-              onClick={() => setIsProfileOpen(true)}
-              className="relative w-48 sm:w-64 md:w-72 aspect-[673/283] hover:scale-[1.03] active:scale-[0.98] transition-transform text-left group"
-            >
+            {/* Profile Plaque Display (Static, no action/hover) */}
+            <div className="relative w-52 sm:w-72 md:w-80 lg:w-88 aspect-[750/225] text-left shrink-0 select-none">
               {/* Avatar circle */}
-              <div className="absolute left-[4.5%] top-[10.6%] w-[29.6%] aspect-square rounded-full overflow-hidden z-0">
+              <div className="absolute left-[5.2%] top-[11%] w-[21%] aspect-square rounded-full overflow-hidden z-0">
                 <Image
                   src={`/assets/avatars/${profile.avatar || 'alexander'}.png`}
                   alt={profile.name || 'Alexander'}
@@ -96,7 +93,7 @@ export default function HomePage() {
 
               {/* Profile Frame Panel Image Overlay */}
               <Image
-                src="/assets/header/header_profile_panel.png"
+                src="/assets/header/header_profile_panel_wide.png"
                 alt="Profile Frame"
                 fill
                 className="object-fill pointer-events-none z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
@@ -104,27 +101,27 @@ export default function HomePage() {
               />
 
               {/* Player Info (Name, Level/Star, EXP) */}
-              <div className="absolute left-[38%] right-[6%] top-[12%] z-20 flex items-center justify-between">
-                <span className="font-bold text-[11px] sm:text-sm md:text-base text-[#fdf0cf] tracking-wide truncate drop-shadow max-w-[95px] sm:max-w-[130px] md:max-w-[150px]">
+              <div className="absolute left-[27%] right-[8%] top-[10%] z-20 flex items-center justify-between">
+                <span className="font-grenze font-bold text-sm sm:text-base md:text-lg lg:text-xl text-[#fdf0cf] tracking-wide truncate drop-shadow max-w-[125px] sm:max-w-[175px] md:max-w-[210px]">
                   {profile.name || 'Alexander'}
                 </span>
-                <span className="flex items-center gap-0.5 text-[10px] sm:text-xs text-amber-300 font-bold bg-black/70 px-1.5 py-0.5 rounded-full border border-amber-500/50 shadow-sm shrink-0">
+                <span className="flex items-center gap-0.5 text-[10px] sm:text-xs text-amber-300 font-bold bg-black/70 px-1.5 py-0.5 rounded-full border border-amber-500/50 shadow-sm shrink-0 font-vietnam">
                   <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-400 text-amber-400" /> 8
                 </span>
               </div>
 
               {/* EXP Bar Fill inside groove */}
-              <div className="absolute left-[38.6%] w-[49%] top-[51%] h-[10%] z-20 rounded-full overflow-hidden bg-black/40">
+              <div className="absolute left-[27%] w-[65%] top-[46%] h-[11%] z-20 rounded-full overflow-hidden bg-black/40">
                 <div className="h-full bg-gradient-to-r from-amber-600 via-amber-400 to-yellow-300 w-1/2 rounded-full shadow-[0_0_6px_rgba(245,158,11,0.8)]" />
               </div>
 
               {/* EXP Text */}
-              <div className="absolute left-[38%] right-[6%] bottom-[10%] z-20">
-                <span className="text-[8px] sm:text-[10px] text-[#dec396]/90 font-sans font-bold drop-shadow">
+              <div className="absolute left-[27%] right-[8%] bottom-[8%] z-20">
+                <span className="text-[8px] sm:text-[10px] text-[#dec396]/90 font-vietnam font-semibold drop-shadow">
                   250 / 500 EXP
                 </span>
               </div>
-            </button>
+            </div>
 
             {/* Settings Gear Button */}
             <button
@@ -311,26 +308,26 @@ export default function HomePage() {
             priority
           />
 
-          <div className="relative z-10 grid h-full grid-cols-4 items-center px-1 sm:px-3 md:px-5 pt-1 sm:pt-2 md:pt-2.5 pb-1">
+          <div className="relative z-10 grid h-full grid-cols-4 items-center px-3 sm:px-8 md:px-11 pt-1 sm:pt-1.5 md:pt-2 pb-1">
             {/* Item 1: Shop */}
             <button
               onClick={() => setIsShopOpen(true)}
-              className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 md:mt-1 transition-transform active:scale-95 cursor-pointer"
+              className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 transition-transform active:scale-95 cursor-pointer"
             >
               <Image
                 src="/assets/menu/menu_badge_shop.png"
                 alt="Shop"
                 width={1254}
                 height={1254}
-                className="home-nav-badge h-13 w-13 sm:h-20 sm:w-20 md:h-24 md:w-24 object-contain"
+                className="home-nav-badge h-11 w-11 sm:h-16 sm:w-16 md:h-19 md:w-19 object-contain"
               />
-              <span className="home-nav-label text-xs sm:text-base md:text-lg font-bold">Shop</span>
+              <span className="home-nav-label text-[11px] sm:text-sm md:text-base font-bold">Shop</span>
             </button>
 
             {/* Item 2: Missions */}
             <button
               onClick={() => setIsQuestsOpen(true)}
-              className="home-nav-item relative flex flex-col items-center justify-center mt-0 sm:mt-0.5 md:mt-1 transition-transform active:scale-95 cursor-pointer"
+              className="home-nav-item relative flex flex-col items-center justify-center mt-0 sm:mt-0.5 transition-transform active:scale-95 cursor-pointer"
             >
               <div className="relative">
                 <Image
@@ -338,47 +335,47 @@ export default function HomePage() {
                   alt="Missions"
                   width={1254}
                   height={1254}
-                  className="home-nav-badge h-13 w-13 sm:h-20 sm:w-20 md:h-24 md:w-24 object-contain"
+                  className="home-nav-badge h-11 w-11 sm:h-16 sm:w-16 md:h-19 md:w-19 object-contain"
                 />
                 <Image
                   src="/assets/menu/menu_badge_notification_3.png"
                   alt="3 notifications"
                   width={1254}
                   height={1254}
-                  className="absolute -right-1 -top-1 sm:-right-2 sm:-top-2 h-5 w-5 sm:h-7 sm:w-7 md:h-8 md:w-8 object-contain z-20 drop-shadow-md"
+                  className="absolute -right-1 -top-1 sm:-right-2 sm:-top-2 h-4 w-4 sm:h-6 sm:w-6 md:h-7 md:w-7 object-contain z-20 drop-shadow-md"
                 />
               </div>
-              <span className="home-nav-label text-xs sm:text-base md:text-lg font-bold">Missions</span>
+              <span className="home-nav-label text-[11px] sm:text-sm md:text-base font-bold">Missions</span>
             </button>
 
             {/* Item 3: Friends */}
             <button
               onClick={() => setIsFriendsOpen(true)}
-              className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 md:mt-1 transition-transform active:scale-95 cursor-pointer"
+              className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 transition-transform active:scale-95 cursor-pointer"
             >
               <Image
                 src="/assets/menu/menu_badge_friends.png"
                 alt="Friends"
                 width={1295}
                 height={1214}
-                className="home-nav-badge h-13 w-13 sm:h-20 sm:w-20 md:h-24 md:w-24 object-contain"
+                className="home-nav-badge h-11 w-11 sm:h-16 sm:w-16 md:h-19 md:w-19 object-contain"
               />
-              <span className="home-nav-label text-xs sm:text-base md:text-lg font-bold">Friends</span>
+              <span className="home-nav-label text-[11px] sm:text-sm md:text-base font-bold">Friends</span>
             </button>
 
             {/* Item 4: Inventory */}
             <button
               onClick={() => setIsInventoryOpen(true)}
-              className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 md:mt-1 transition-transform active:scale-95 cursor-pointer"
+              className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 transition-transform active:scale-95 cursor-pointer"
             >
               <Image
                 src="/assets/menu/menu_badge_inventory.png"
                 alt="Inventory"
                 width={1254}
                 height={1254}
-                className="home-nav-badge h-13 w-13 sm:h-20 sm:w-20 md:h-24 md:w-24 object-contain"
+                className="home-nav-badge h-11 w-11 sm:h-16 sm:w-16 md:h-19 md:w-19 object-contain"
               />
-              <span className="home-nav-label text-xs sm:text-base md:text-lg font-bold">Inventory</span>
+              <span className="home-nav-label text-[11px] sm:text-sm md:text-base font-bold">Inventory</span>
             </button>
           </div>
         </nav>
