@@ -27,15 +27,13 @@ export default function HomePage() {
   const [isQuestsOpen, setIsQuestsOpen] = useState(false);
   const [isFriendsOpen, setIsFriendsOpen] = useState(false);
   const [isInventoryOpen, setIsInventoryOpen] = useState(false);
-  const [aiNotice, setAiNotice] = useState(false);
+  const [devNotice, setDevNotice] = useState<string | null>(null);
 
-  const handlePlayAI = () => {
-    setAiNotice(true);
+  const showDevNotice = (msg = 'This feature is currently under development.') => {
+    setDevNotice(msg);
     setTimeout(() => {
-      setAiNotice(false);
-      // Create a single-player practice room
-      router.push(`/room/SOLO_${Math.floor(1000 + Math.random() * 9000)}`);
-    }, 1200);
+      setDevNotice((prev) => (prev === msg ? null : prev));
+    }, 2500);
   };
 
   return (
@@ -181,7 +179,7 @@ export default function HomePage() {
 
           {/* Card 2: VS AI BOTS */}
           <div
-            onClick={handlePlayAI}
+            onClick={() => showDevNotice('This feature is currently under development.')}
             className="relative aspect-[1918/630] group cursor-pointer hover:scale-[1.02] active:scale-[0.99] transition-all duration-300 drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)]"
           >
             {/* Pre-composited Card Board Asset */}
@@ -212,14 +210,14 @@ export default function HomePage() {
                 VS AI BOTS
               </h3>
               <p className="text-xs sm:text-sm md:text-base lg:text-lg text-[#f0e2cc] font-cormorant font-semibold tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] max-w-sm mt-1 sm:mt-1.5 leading-snug italic">
-                {aiNotice ? 'Launching Solo Room...' : 'Practice strategy and challenge AI colonists'}
+                Practice strategy and challenge AI colonists
               </p>
             </div>
           </div>
 
           {/* Card 3: HOW TO PLAY */}
           <div
-            onClick={() => setIsRulebookOpen(true)}
+            onClick={() => showDevNotice('This feature is currently under development.')}
             className="relative aspect-[1918/630] group cursor-pointer hover:scale-[1.02] active:scale-[0.99] transition-all duration-300 drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)]"
           >
             {/* Pre-composited Card Board Asset */}
@@ -257,7 +255,7 @@ export default function HomePage() {
 
           {/* Card 4: LEADERBOARD */}
           <div
-            onClick={() => setIsLeaderboardOpen(true)}
+            onClick={() => showDevNotice('This feature is currently under development.')}
             className="relative aspect-[1918/630] group cursor-pointer hover:scale-[1.02] active:scale-[0.99] transition-all duration-300 drop-shadow-[0_8px_16px_rgba(0,0,0,0.85)]"
           >
             {/* Pre-composited Card Board Asset */}
@@ -311,7 +309,7 @@ export default function HomePage() {
           <div className="relative z-10 grid h-full grid-cols-4 items-center px-3 sm:px-8 md:px-11 pt-1 sm:pt-1.5 md:pt-2 pb-1">
             {/* Item 1: Shop */}
             <button
-              onClick={() => setIsShopOpen(true)}
+              onClick={() => showDevNotice('This feature is currently under development.')}
               className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 transition-transform active:scale-95 cursor-pointer"
             >
               <Image
@@ -326,7 +324,7 @@ export default function HomePage() {
 
             {/* Item 2: Missions */}
             <button
-              onClick={() => setIsQuestsOpen(true)}
+              onClick={() => showDevNotice('This feature is currently under development.')}
               className="home-nav-item relative flex flex-col items-center justify-center mt-0 sm:mt-0.5 transition-transform active:scale-95 cursor-pointer"
             >
               <div className="relative">
@@ -350,7 +348,7 @@ export default function HomePage() {
 
             {/* Item 3: Friends */}
             <button
-              onClick={() => setIsFriendsOpen(true)}
+              onClick={() => showDevNotice('This feature is currently under development.')}
               className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 transition-transform active:scale-95 cursor-pointer"
             >
               <Image
@@ -365,7 +363,7 @@ export default function HomePage() {
 
             {/* Item 4: Inventory */}
             <button
-              onClick={() => setIsInventoryOpen(true)}
+              onClick={() => showDevNotice('This feature is currently under development.')}
               className="home-nav-item flex flex-col items-center justify-center mt-0 sm:mt-0.5 transition-transform active:scale-95 cursor-pointer"
             >
               <Image
@@ -416,6 +414,18 @@ export default function HomePage() {
         isOpen={isInventoryOpen}
         onClose={() => setIsInventoryOpen(false)}
       />
+
+      {/* Feature Under Development Notice Toast */}
+      {devNotice && (
+        <div className="fixed top-8 inset-x-0 mx-auto w-fit z-50 pointer-events-none flex justify-center">
+          <div className="flex items-center gap-2.5 bg-[#1f1107]/95 border-2 border-[#caa055] text-[#faedd0] px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl shadow-[0_12px_28px_rgba(0,0,0,0.95)] backdrop-blur-md animate-bounce pointer-events-auto">
+            <span className="text-amber-400 font-bold text-base sm:text-lg drop-shadow">❖</span>
+            <span className="font-sans font-semibold text-xs sm:text-sm md:text-base tracking-wide drop-shadow text-amber-100">
+              {devNotice}
+            </span>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
