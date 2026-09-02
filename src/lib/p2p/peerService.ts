@@ -65,7 +65,7 @@ export class P2PManager {
             name: this.profile.name,
             color: this.profile.color,
             pieceStyle: this.profile.pieceStyle,
-            avatarSeed: this.profile.avatarSeed,
+            avatarSeed: this.profile.avatar || this.profile.avatarSeed || 'alexander',
           },
         });
       }
@@ -137,7 +137,7 @@ export class P2PManager {
               name: this.profile.name,
               color: this.profile.color,
               pieceStyle: this.profile.pieceStyle,
-              avatarSeed: this.profile.avatarSeed,
+              avatarSeed: this.profile.avatar || this.profile.avatarSeed || 'alexander',
             },
           });
         }

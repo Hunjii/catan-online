@@ -66,6 +66,7 @@ export default function GameRoomPage() {
         <LobbyRoom
           gameState={gameState}
           currentUserId={profile.id}
+          userAvatar={profile.avatar}
           isHost={isHost}
           status={status}
           roomId={roomId}
