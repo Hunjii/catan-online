@@ -1,17 +1,10 @@
 'use client';
 
+import React, { useState } from 'react';
 import Image from 'next/image';
-import { GameState, BUILDING_COSTS, ResourceType } from '@/lib/catan/types';
+import { GameState, BUILDING_COSTS } from '@/lib/catan/types';
 import { hasEnoughResources } from '@/lib/catan/trade';
-import {
-  Hammer,
-  Home,
-  Castle,
-  Layers,
-  ArrowRightLeft,
-  BookOpen,
-  CheckCircle,
-} from 'lucide-react';
+import { ChevronDown, ChevronUp, Star } from 'lucide-react';
 
 interface ActionPanelProps {
   gameState: GameState;
@@ -26,46 +19,6 @@ interface ActionPanelProps {
   onOpenRulebook: () => void;
 }
 
-// 3D Dice Face Dots Component
-const DiceFace: React.FC<{ value: number }> = ({ value }) => {
-  const dotPositions: Record<number, string[]> = {
-    1: ['col-start-2 row-start-2'],
-    2: ['col-start-1 row-start-1', 'col-start-3 row-start-3'],
-    3: ['col-start-1 row-start-1', 'col-start-2 row-start-2', 'col-start-3 row-start-3'],
-    4: [
-      'col-start-1 row-start-1',
-      'col-start-3 row-start-1',
-      'col-start-1 row-start-3',
-      'col-start-3 row-start-3',
-    ],
-    5: [
-      'col-start-1 row-start-1',
-      'col-start-3 row-start-1',
-      'col-start-2 row-start-2',
-      'col-start-1 row-start-3',
-      'col-start-3 row-start-3',
-    ],
-    6: [
-      'col-start-1 row-start-1',
-      'col-start-3 row-start-1',
-      'col-start-1 row-start-2',
-      'col-start-3 row-start-2',
-      'col-start-1 row-start-3',
-      'col-start-3 row-start-3',
-    ],
-  };
-
-  const dots = dotPositions[value] || dotPositions[1];
-
-  return (
-    <div className="w-11 h-11 sm:w-12 sm:h-12 bg-white rounded-xl border-2 border-slate-300 shadow-[2px_4px_8px_rgba(0,0,0,0.6)] grid grid-cols-3 grid-rows-3 p-1.5 gap-0.5 items-center justify-items-center transform transition-transform hover:rotate-6">
-      {dots.map((pos, i) => (
-        <span key={i} className={`w-2 h-2 rounded-full bg-slate-900 ${pos}`} />
-      ))}
-    </div>
-  );
-};
-
 export const ActionPanel: React.FC<ActionPanelProps> = ({
   gameState,
   currentUserId,
@@ -78,174 +31,400 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
   onOpenDevCards,
   onOpenRulebook,
 }) => {
+  const [isActionsOpen, setIsActionsOpen] = useState(true);
+  const [isBuildOpen, setIsBuildOpen] = useState(true);
+
   const activePlayerId = gameState.playerOrder[gameState.activePlayerIndex];
   const isMyTurn = activePlayerId === currentUserId;
   const myPlayer = gameState.players.find((p) => p.id === currentUserId);
 
   if (!myPlayer) return null;
 
-  // Cost checks
-  const canAffordRoad =
-    hasEnoughResources(myPlayer, BUILDING_COSTS.road) && myPlayer.roadsLeft > 0;
-  const canAffordSettlement =
-    hasEnoughResources(myPlayer, BUILDING_COSTS.settlement) &&
-    myPlayer.settlementsLeft > 0;
-  const canAffordCity =
-    hasEnoughResources(myPlayer, BUILDING_COSTS.city) && myPlayer.citiesLeft > 0;
-  const canAffordDevCard =
-    hasEnoughResources(myPlayer, BUILDING_COSTS.devCard) &&
-    gameState.devCardDeck.length > 0;
+  // Check building affordability & remaining pieces
+  const canAffordRoad = hasEnoughResources(myPlayer, BUILDING_COSTS.road) && myPlayer.roadsLeft > 0;
+  const canAffordSettlement = hasEnoughResources(myPlayer, BUILDING_COSTS.settlement) && myPlayer.settlementsLeft > 0;
+  const canAffordCity = hasEnoughResources(myPlayer, BUILDING_COSTS.city) && myPlayer.citiesLeft > 0;
+  const canAffordDevCard = hasEnoughResources(myPlayer, BUILDING_COSTS.devCard) && gameState.devCardDeck.length > 0;
+  const diceTotal = gameState.lastDiceRoll ? gameState.lastDiceRoll[0] + gameState.lastDiceRoll[1] : null;
 
-  const dice1 = gameState.lastDiceRoll ? gameState.lastDiceRoll[0] : 3;
-  const dice2 = gameState.lastDiceRoll ? gameState.lastDiceRoll[1] : 5;
+  const isTurnActionPhase = gameState.phase === 'turn_actions';
+  const isRollDicePhase = gameState.phase === 'turn_roll_dice';
 
   return (
-    <div className="flex flex-col gap-3 w-full h-full justify-between pointer-events-auto select-none font-catan">
-      
-      {/* 1. MIDDLE: ACTION BUTTONS (Parchment Styled Stack) */}
-      <div className="game-panel my-auto flex flex-col gap-2 rounded-2xl border-2 border-catan-gold-trim/80 p-3 backdrop-blur-md">
-        <div className="mb-1 flex items-center justify-between border-b border-catan-gold-trim/30 pb-2">
-          <div>
-            <p className="font-sans text-[9px] font-black uppercase tracking-[0.18em] text-amber-200/65">BÀN ĐIỀU KHIỂN</p>
-            <p className="text-xs font-black tracking-wide text-catan-parchment">Hành động trong lượt</p>
+    <div className="flex h-full w-full flex-col justify-between gap-2.5 sm:gap-3 pointer-events-auto select-none font-catan">
+      {/* 1. ACTIONS MAIN CARD */}
+      <div className="flex w-full flex-col gap-2 rounded-2xl bg-[#140d07]/92 p-2.5 sm:p-3 border border-[#442c16]/90 shadow-[0_12px_28px_rgba(0,0,0,0.75)] backdrop-blur-md">
+        {/* Actions Title Bar */}
+        <button
+          onClick={() => setIsActionsOpen(!isActionsOpen)}
+          className="flex w-full items-center justify-between px-1.5 py-1 text-left cursor-pointer transition hover:opacity-90"
+        >
+          <span className="font-serif text-xs sm:text-sm font-bold tracking-widest text-[#e5b84c] uppercase drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+            ACTIONS
+          </span>
+          {isActionsOpen ? (
+            <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 text-amber-200/80" />
+          ) : (
+            <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-amber-200/80" />
+          )}
+        </button>
+
+        {isActionsOpen && (
+          <div className="flex flex-col gap-2 pt-0.5">
+            {/* 1.1 BUILD GROUP */}
+            <div className="overflow-hidden rounded-xl border border-[#3e2714]/90 bg-[#181009]/90 shadow-md">
+              {/* Build Header (Collapsible) */}
+              <button
+                onClick={() => setIsBuildOpen(!isBuildOpen)}
+                className="flex w-full items-center justify-between border-b border-[#352010]/80 bg-[#1f140b]/90 px-3 py-2 cursor-pointer transition hover:bg-[#281a0e]"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="relative h-5 w-5 sm:h-6 sm:w-6 shrink-0">
+                    <Image
+                      src="/assets/ingame/ingame_action_build.png"
+                      alt="Build"
+                      fill
+                      className="object-contain drop-shadow"
+                    />
+                  </div>
+                  <span className="font-serif text-xs sm:text-sm font-bold tracking-wider text-[#e5b84c] uppercase">
+                    BUILD
+                  </span>
+                </div>
+                {isBuildOpen ? (
+                  <ChevronUp className="h-4 w-4 text-amber-200/70" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-amber-200/70" />
+                )}
+              </button>
+
+              {/* Build Items (Road, Settlement, City) */}
+              {isBuildOpen && (
+                <div className="flex flex-col divide-y divide-[#2c1a0c]">
+                  {/* --- ROAD ROW --- */}
+                  <button
+                    onClick={() => {
+                      if (!isMyTurn || !isTurnActionPhase) return;
+                      setBuildMode(buildMode === 'road' ? 'none' : 'road');
+                    }}
+                    disabled={!isMyTurn || !isTurnActionPhase || (!canAffordRoad && gameState.roadBuildingRoadsRemaining === 0) || myPlayer.roadsLeft === 0}
+                    className={`group flex w-full items-center gap-2.5 p-2 sm:p-2.5 text-left transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${
+                      buildMode === 'road'
+                        ? 'border-l-4 border-amber-400 bg-gradient-to-r from-[#382210] to-[#201308] shadow-inner'
+                        : 'hover:bg-[#24170d]'
+                    }`}
+                  >
+                    {/* 3D Road Piece Icon */}
+                    <div className="relative h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex items-center justify-center">
+                      <Image
+                        src="/assets/ingame/ingame_road_piece.png"
+                        alt="Road Piece"
+                        fill
+                        className="object-contain drop-shadow"
+                      />
+                    </div>
+
+                    {/* Road Info & Costs */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm font-bold text-[#fcfbf9] font-vietnam">
+                          Road
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-vietnam">
+                          còn {myPlayer.roadsLeft}
+                        </span>
+                      </div>
+
+                      {/* VP + Resource Costs */}
+                      <div className="mt-1 flex items-center gap-2.5 font-vietnam">
+                        {/* 0 VP */}
+                        <div className="flex items-center gap-0.5">
+                          <div className="relative h-3 w-2.5 shrink-0 opacity-80">
+                            <Image
+                              src="/assets/ingame/ingame_card_icon.svg"
+                              alt="VP"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                          <span className="text-[11px] font-bold text-[#d6c7b0]">0</span>
+                        </div>
+
+                        {/* Cost: 1 Timber + 1 Brick */}
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-[#f2e6cb]">
+                          <div className="flex items-center gap-0.5" title="1 Gỗ (Timber)">
+                            <Image src="/assets/icons/timber.png" alt="Gỗ" width={13} height={13} className="object-contain" />
+                            <span>1</span>
+                          </div>
+                          <div className="flex items-center gap-0.5" title="1 Gạch (Brick)">
+                            <Image src="/assets/icons/brick.png" alt="Gạch" width={13} height={13} className="object-contain" />
+                            <span>1</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* --- SETTLEMENT ROW --- */}
+                  <button
+                    onClick={() => {
+                      if (!isMyTurn || !isTurnActionPhase) return;
+                      setBuildMode(buildMode === 'settlement' ? 'none' : 'settlement');
+                    }}
+                    disabled={!isMyTurn || !isTurnActionPhase || !canAffordSettlement || myPlayer.settlementsLeft === 0}
+                    className={`group flex w-full items-center gap-2.5 p-2 sm:p-2.5 text-left transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${
+                      buildMode === 'settlement'
+                        ? 'border-l-4 border-amber-400 bg-gradient-to-r from-[#382210] to-[#201308] shadow-inner'
+                        : 'hover:bg-[#24170d]'
+                    }`}
+                  >
+                    {/* 3D Settlement Piece Icon */}
+                    <div className="relative h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex items-center justify-center">
+                      <Image
+                        src="/assets/ingame/ingame_settlement_piece.png"
+                        alt="Settlement Piece"
+                        fill
+                        className="object-contain drop-shadow"
+                      />
+                    </div>
+
+                    {/* Settlement Info & Costs */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm font-bold text-[#fcfbf9] font-vietnam">
+                          Settlement
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-vietnam">
+                          còn {myPlayer.settlementsLeft}
+                        </span>
+                      </div>
+
+                      {/* VP + Resource Costs */}
+                      <div className="mt-1 flex items-center gap-2 font-vietnam">
+                        {/* 1 VP */}
+                        <div className="flex items-center gap-0.5">
+                          <div className="relative h-3 w-2.5 shrink-0 opacity-80">
+                            <Image
+                              src="/assets/ingame/ingame_card_icon.svg"
+                              alt="VP"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                          <span className="text-[11px] font-bold text-[#d6c7b0]">1</span>
+                        </div>
+
+                        {/* Cost: 1 Brick + 1 Timber + 1 Wheat + 1 Sheep */}
+                        <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#f2e6cb]">
+                          <div className="flex items-center gap-0.5" title="1 Gạch (Brick)">
+                            <Image src="/assets/icons/brick.png" alt="Gạch" width={13} height={13} className="object-contain" />
+                            <span>1</span>
+                          </div>
+                          <div className="flex items-center gap-0.5" title="1 Gỗ (Timber)">
+                            <Image src="/assets/icons/timber.png" alt="Gỗ" width={13} height={13} className="object-contain" />
+                            <span>1</span>
+                          </div>
+                          <div className="flex items-center gap-0.5" title="1 Lúa (Wheat)">
+                            <Image src="/assets/icons/wheat.png" alt="Lúa" width={13} height={13} className="object-contain" />
+                            <span>1</span>
+                          </div>
+                          <div className="flex items-center gap-0.5" title="1 Cừu (Sheep)">
+                            <Image src="/assets/icons/sheep.png" alt="Cừu" width={13} height={13} className="object-contain" />
+                            <span>1</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* --- CITY ROW --- */}
+                  <button
+                    onClick={() => {
+                      if (!isMyTurn || !isTurnActionPhase) return;
+                      setBuildMode(buildMode === 'city' ? 'none' : 'city');
+                    }}
+                    disabled={!isMyTurn || !isTurnActionPhase || !canAffordCity || myPlayer.citiesLeft === 0}
+                    className={`group flex w-full items-center gap-2.5 p-2 sm:p-2.5 text-left transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40 ${
+                      buildMode === 'city'
+                        ? 'border-l-4 border-amber-400 bg-gradient-to-r from-[#382210] to-[#201308] shadow-inner'
+                        : 'hover:bg-[#24170d]'
+                    }`}
+                  >
+                    {/* 3D City Piece Icon */}
+                    <div className="relative h-9 w-9 sm:h-10 sm:w-10 shrink-0 flex items-center justify-center">
+                      <Image
+                        src="/assets/ingame/ingame_city_piece.png"
+                        alt="City Piece"
+                        fill
+                        className="object-contain drop-shadow"
+                      />
+                    </div>
+
+                    {/* City Info & Costs */}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs sm:text-sm font-bold text-[#fcfbf9] font-vietnam">
+                          City
+                        </span>
+                        <span className="text-[10px] text-stone-400 font-vietnam">
+                          còn {myPlayer.citiesLeft}
+                        </span>
+                      </div>
+
+                      {/* VP + Resource Costs */}
+                      <div className="mt-1 flex items-center gap-2.5 font-vietnam">
+                        {/* 2 VP */}
+                        <div className="flex items-center gap-0.5">
+                          <div className="relative h-3 w-2.5 shrink-0 opacity-80">
+                            <Image
+                              src="/assets/ingame/ingame_card_icon.svg"
+                              alt="VP"
+                              fill
+                              className="object-contain"
+                            />
+                          </div>
+                          <span className="text-[11px] font-bold text-[#d6c7b0]">2</span>
+                        </div>
+
+                        {/* Cost: 2 Wheat + 3 Ore */}
+                        <div className="flex items-center gap-2 text-[11px] font-bold text-[#f2e6cb]">
+                          <div className="flex items-center gap-0.5" title="2 Lúa (Wheat)">
+                            <Image src="/assets/icons/wheat.png" alt="Lúa" width={13} height={13} className="object-contain" />
+                            <span>2</span>
+                          </div>
+                          <div className="flex items-center gap-0.5" title="3 Quặng (Ore)">
+                            <Image src="/assets/icons/ore.png" alt="Quặng" width={13} height={13} className="object-contain" />
+                            <span>3</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 1.2 TRADE BUTTON */}
+            <button
+              onClick={() => {
+                if (!isMyTurn || !isTurnActionPhase) return;
+                onOpenTrade();
+              }}
+              disabled={!isMyTurn || !isTurnActionPhase}
+              className="flex w-full items-center justify-between rounded-xl border border-[#3e2714]/90 bg-[#181009]/90 p-2.5 sm:p-3 shadow-md transition hover:border-[#6a4222] hover:bg-[#24170d] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="relative h-5 w-5 sm:h-6 sm:w-6 shrink-0">
+                  <Image
+                    src="/assets/ingame/ingame_action_trade.png"
+                    alt="Trade"
+                    fill
+                    className="object-contain drop-shadow"
+                  />
+                </div>
+                <span className="font-serif text-xs sm:text-sm font-bold tracking-wider text-[#e5b84c] uppercase">
+                  TRADE
+                </span>
+              </div>
+              <span className="font-vietnam text-[10px] sm:text-[11px] font-medium text-stone-400">
+                Giao thương
+              </span>
+            </button>
+
+            {/* 1.3 DEVELOPMENT CARD BUTTON */}
+            <button
+              onClick={onBuyDevCard}
+              disabled={!isMyTurn || !canAffordDevCard || !isTurnActionPhase}
+              className="flex w-full items-center justify-between rounded-xl border border-[#3e2714]/90 bg-[#181009]/90 p-2.5 sm:p-3 shadow-md transition hover:border-[#6a4222] hover:bg-[#24170d] cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="relative h-5 w-5 sm:h-6 sm:w-6 shrink-0">
+                  <Image
+                    src="/assets/ingame/ingame_action_development_card.png"
+                    alt="Development Card"
+                    fill
+                    className="object-contain drop-shadow"
+                  />
+                </div>
+                <span className="font-serif text-xs sm:text-sm font-bold tracking-wider text-[#e5b84c] uppercase">
+                  DEVELOPMENT CARD
+                </span>
+              </div>
+
+              {/* Dev Card Cost: 1 Sheep + 1 Wheat + 1 Ore */}
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#f2e6cb]">
+                <div className="flex items-center gap-0.5" title="1 Cừu">
+                  <Image src="/assets/icons/sheep.png" alt="Cừu" width={12} height={12} className="object-contain" />
+                  <span>1</span>
+                </div>
+                <div className="flex items-center gap-0.5" title="1 Lúa">
+                  <Image src="/assets/icons/wheat.png" alt="Lúa" width={12} height={12} className="object-contain" />
+                  <span>1</span>
+                </div>
+                <div className="flex items-center gap-0.5" title="1 Quặng">
+                  <Image src="/assets/icons/ore.png" alt="Quặng" width={12} height={12} className="object-contain" />
+                  <span>1</span>
+                </div>
+              </div>
+            </button>
           </div>
-          <span className="rounded-full border border-catan-gold-trim/50 bg-black/25 px-2 py-1 font-sans text-[10px] font-bold text-amber-200/80">
-            {isMyTurn ? 'ĐẾN LƯỢT' : 'THEO DÕI'}
+        )}
+      </div>
+
+      {/* 2. ROLL DICE & END TURN CARD */}
+      <div className="flex w-full flex-col items-center gap-2 rounded-2xl bg-[#140d07]/92 p-3 sm:p-3.5 border border-[#442c16]/90 shadow-[0_12px_28px_rgba(0,0,0,0.75)] backdrop-blur-md">
+        {/* Dice Header */}
+        <div className="flex w-full items-center justify-between px-1">
+          <span className="font-serif text-xs sm:text-sm font-bold tracking-wider text-[#e5b84c] uppercase">
+            ROLL DICE
+          </span>
+          <span className="font-vietnam text-[10px] font-bold text-amber-200/60 uppercase">
+            {isMyTurn ? 'Lượt của bạn' : 'Đang chờ'}
           </span>
         </div>
-        {/* Button 1: Xây Đường */}
-        <button
-          onClick={() =>
-            isMyTurn && setBuildMode(buildMode === 'road' ? 'none' : 'road')
-          }
-          disabled={
-            !isMyTurn ||
-            (!canAffordRoad && gameState.roadBuildingRoadsRemaining === 0)
-          }
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 font-black text-xs sm:text-sm tracking-wide shadow-btn-wood transition-all
-            ${
-              buildMode === 'road'
-                ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-stone-950 border-amber-200 scale-105 shadow-amber-400/40'
-                : isMyTurn &&
-                  (canAffordRoad || gameState.roadBuildingRoadsRemaining > 0)
-                ? 'bg-gradient-to-r from-[#fbf1db] to-[#ecd7b0] text-[#3d2314] border-[#c49b63] hover:scale-[1.02] hover:brightness-105'
-                : 'bg-[#ecd7b0]/40 text-[#3d2314]/40 border-[#c49b63]/30 cursor-not-allowed'
-            }
-          `}
-        >
-          <span className="text-xl">🪵</span>
-          <span className="flex-1 text-left">Xây Đường</span>
-          <span className="text-xs font-sans font-bold opacity-80">({myPlayer.roadsLeft})</span>
-        </button>
 
-        {/* Button 2: Xây Nhà */}
+        {/* 3D Dice Button */}
         <button
-          onClick={() =>
-            isMyTurn &&
-            setBuildMode(buildMode === 'settlement' ? 'none' : 'settlement')
-          }
-          disabled={!isMyTurn || !canAffordSettlement}
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 font-black text-xs sm:text-sm tracking-wide shadow-btn-wood transition-all
-            ${
-              buildMode === 'settlement'
-                ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-stone-950 border-amber-200 scale-105 shadow-amber-400/40'
-                : isMyTurn && canAffordSettlement
-                ? 'bg-gradient-to-r from-[#fbf1db] to-[#ecd7b0] text-[#3d2314] border-[#c49b63] hover:scale-[1.02] hover:brightness-105'
-                : 'bg-[#ecd7b0]/40 text-[#3d2314]/40 border-[#c49b63]/30 cursor-not-allowed'
-            }
-          `}
-        >
-          <Home className="w-5 h-5 text-amber-700" />
-          <span className="flex-1 text-left">Xây Nhà</span>
-          <span className="text-xs font-sans font-bold opacity-80">({myPlayer.settlementsLeft})</span>
-        </button>
-
-        {/* Button 3: Xây Thành Phố */}
-        <button
-          onClick={() =>
-            isMyTurn && setBuildMode(buildMode === 'city' ? 'none' : 'city')
-          }
-          disabled={!isMyTurn || !canAffordCity}
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 font-black text-xs sm:text-sm tracking-wide shadow-btn-wood transition-all
-            ${
-              buildMode === 'city'
-                ? 'bg-gradient-to-r from-amber-400 to-yellow-300 text-stone-950 border-amber-200 scale-105 shadow-amber-400/40'
-                : isMyTurn && canAffordCity
-                ? 'bg-gradient-to-r from-[#fbf1db] to-[#ecd7b0] text-[#3d2314] border-[#c49b63] hover:scale-[1.02] hover:brightness-105'
-                : 'bg-[#ecd7b0]/40 text-[#3d2314]/40 border-[#c49b63]/30 cursor-not-allowed'
-            }
-          `}
-        >
-          <Castle className="w-5 h-5 text-amber-700" />
-          <span className="flex-1 text-left">Xây Thành Phố</span>
-          <span className="text-xs font-sans font-bold opacity-80">({myPlayer.citiesLeft})</span>
-        </button>
-
-        {/* Button 4: Mua Bài Phát Triển */}
-        <button
-          onClick={onBuyDevCard}
-          disabled={!isMyTurn || !canAffordDevCard}
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 font-black text-xs sm:text-sm tracking-wide shadow-btn-wood transition-all
-            ${
-              isMyTurn && canAffordDevCard
-                ? 'bg-gradient-to-r from-[#fbf1db] to-[#ecd7b0] text-[#3d2314] border-[#c49b63] hover:scale-[1.02] hover:brightness-105'
-                : 'bg-[#ecd7b0]/40 text-[#3d2314]/40 border-[#c49b63]/30 cursor-not-allowed'
-            }
-          `}
-        >
-          <Layers className="w-5 h-5 text-amber-700" />
-          <span className="flex-1 text-left">Mua Bài Phát Triển</span>
-          <span className="text-xs font-sans font-bold opacity-80">({gameState.devCardDeck.length})</span>
-        </button>
-
-        {/* Trade quick link */}
-        <button
-          onClick={onOpenTrade}
-          className="flex items-center justify-center gap-2 py-2 rounded-xl bg-catan-ocean/80 hover:bg-catan-ocean text-white font-bold text-xs border border-catan-gold-trim/60 shadow-sm transition-all"
-        >
-          <ArrowRightLeft className="w-4 h-4" /> Giao Thương / Trao Đổi
-        </button>
-      </div>
-
-      {/* 3. BOTTOM RIGHT: 3D DICE BOWL & END TURN BUTTON */}
-      <div className="game-panel flex flex-col items-center gap-2.5 rounded-2xl border-2 border-catan-gold-trim/70 p-2.5 backdrop-blur-md">
-        {/* Circular Dice Bowl */}
-        <div
-          onClick={() => {
-            if (isMyTurn && gameState.phase === 'turn_roll_dice') {
-              onRollDice();
-            }
-          }}
-          className={`relative w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-b from-[#2d1b11] to-[#120a06] border-4 border-catan-gold-trim/90 flex items-center justify-center gap-2 shadow-[0_15px_30px_rgba(0,0,0,0.8)] cursor-pointer group transition-transform
-            ${
-              isMyTurn && gameState.phase === 'turn_roll_dice'
-                ? 'ring-4 ring-amber-400/80 animate-bounce'
-                : 'hover:scale-105'
-            }
-          `}
+          onClick={() => isMyTurn && isRollDicePhase && onRollDice()}
+          disabled={!isMyTurn || !isRollDicePhase}
+          className={`relative h-20 w-full max-w-[13rem] sm:h-24 overflow-hidden rounded-xl transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer ${
+            isMyTurn && isRollDicePhase ? 'animate-pulse drop-shadow-[0_0_15px_rgba(248,194,75,0.6)]' : ''
+          }`}
           title="Bấm để đổ xúc xắc"
         >
-          <div className="absolute inset-2 rounded-full shadow-inset-wood pointer-events-none" />
-          <DiceFace value={dice1} />
-          <DiceFace value={dice2} />
+          <Image
+            src="/assets/ingame/ingame_dice_pair.png"
+            alt="Xúc xắc"
+            fill
+            className="object-contain"
+            sizes="220px"
+            priority
+          />
+        </button>
+
+        {/* Dice Total Pill */}
+        <div className="flex min-w-20 items-center justify-center rounded-full border border-amber-300/80 bg-[#1e130a] px-4 py-0.5 font-catan text-lg sm:text-xl font-bold text-[#fcd34d] shadow-inner">
+          {diceTotal ?? '—'}
         </div>
 
-        {/* Big End Turn Button */}
+        {/* Dice Status Hint */}
+        <p className="text-center font-vietnam text-[11px] sm:text-xs font-medium text-amber-100/70">
+          {diceTotal
+            ? `Tổng điểm xúc xắc: ${diceTotal}`
+            : isMyTurn && isRollDicePhase
+            ? 'Đổ xúc xắc để thu thập tài nguyên'
+            : 'Chờ người chơi đổ xúc xắc'}
+        </p>
+
+        {/* End Turn Button */}
         <button
           onClick={onEndTurn}
-          disabled={!isMyTurn || gameState.phase === 'turn_roll_dice'}
-          className={`w-full py-3 sm:py-3.5 px-6 rounded-2xl border-2 sm:border-3 font-black text-sm sm:text-base tracking-widest uppercase shadow-2xl transition-all font-catan
-            ${
-              isMyTurn && gameState.phase === 'turn_actions'
-                ? 'bg-gradient-to-r from-amber-950 via-amber-900 to-amber-950 text-catan-gold-trim border-catan-gold-trim hover:brightness-125 active:scale-95 shadow-amber-500/20'
-                : 'bg-black/60 text-catan-parchment/40 border-catan-dark-wood cursor-not-allowed'
-            }
-          `}
+          disabled={!isMyTurn || !isTurnActionPhase}
+          className="w-full mt-1 rounded-xl border border-amber-300/70 bg-gradient-to-r from-[#d97706] via-[#f5b829] to-[#d97706] py-2.5 font-sans text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-[#241302] shadow-[0_4px_12px_rgba(0,0,0,0.6)] transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
         >
-          {isMyTurn && gameState.phase === 'turn_actions' ? 'KẾT THÚC LƯỢT' : 'CHỜ ĐẾN LƯỢT'}
+          {isMyTurn && isTurnActionPhase ? 'KẾT THÚC LƯỢT' : 'CHỜ ĐẾN LƯỢT'}
         </button>
       </div>
-
     </div>
   );
 };

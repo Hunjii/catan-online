@@ -259,13 +259,15 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
                     </span>
                   </div>
 
-                  {/* Small Green Checkmark at top-right corner if Ready */}
+                  {/* Green translucent READY banner */}
                   {player.isReady && (
                     <div
-                      className="absolute top-[16%] right-[15%] z-20 w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-full bg-gradient-to-tr from-emerald-600 to-green-400 border-2 border-emerald-100 shadow-[0_0_14px_rgba(34,197,94,0.9)] flex items-center justify-center animate-in zoom-in-50 duration-300"
-                      title="Đã Sẵn Sàng"
+                      className="absolute top-[49%] -translate-y-1/2 inset-x-[13%] z-20 bg-emerald-600/55 backdrop-blur-[2px] border-y border-emerald-300/35 py-2 sm:py-2.5 md:py-3 rounded-sm flex items-center justify-center shadow-[0_0_14px_rgba(16,185,129,0.3)] animate-in fade-in zoom-in-95 duration-200 pointer-events-none"
+                      title="READY"
                     >
-                      <Check className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5 text-white stroke-[3.5]" />
+                      <span className="font-catan font-black text-sm sm:text-base md:text-lg lg:text-xl tracking-[0.22em] uppercase text-white/75 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                        READY
+                      </span>
                     </div>
                   )}
 
@@ -330,6 +332,15 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
 
       {/* 4. BOTTOM ACTION SECTION (WELL-PROPORTIONED) */}
       <footer className="relative z-30 w-full flex flex-col items-center justify-center gap-1.5 pb-2 sm:pb-3 pointer-events-auto">
+        {/* Roman-style Player Count Display */}
+        <div className="flex items-center justify-center gap-2.5 select-none mb-0.5">
+          <span className="text-amber-400/70 text-xs sm:text-sm">❖</span>
+          <span className="font-cinzel font-black tracking-[0.25em] text-sm sm:text-base md:text-lg text-transparent bg-clip-text bg-gradient-to-b from-[#fff8db] via-[#fed25c] to-[#b37e16] drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] drop-shadow-[0_0_14px_rgba(254,210,92,0.45)]">
+            PLAYERS: {gameState.players.length} / 4
+          </span>
+          <span className="text-amber-400/70 text-xs sm:text-sm">❖</span>
+        </div>
+
         {isHost ? (
           // HOST: START GAME BUTTON
           <div className="flex flex-col items-center gap-1.5">
@@ -347,10 +358,6 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
                     className="object-contain"
                     priority
                   />
-                  {/* Count subtext on lower portion of button */}
-                  <span className="absolute bottom-[17%] left-1/2 -translate-x-1/2 font-serif font-black text-xs sm:text-sm md:text-base text-amber-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)] tracking-wider">
-                    ({gameState.players.length}/4)
-                  </span>
                 </div>
               </button>
             ) : (
@@ -366,10 +373,6 @@ export const LobbyRoom: React.FC<LobbyRoomProps> = ({
                     className="object-contain"
                     priority
                   />
-                  {/* Count subtext on lower portion of button */}
-                  <span className="absolute bottom-[17%] left-1/2 -translate-x-1/2 font-serif font-black text-xs sm:text-sm md:text-base text-amber-500/80 drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] tracking-wider">
-                    ({gameState.players.length}/4)
-                  </span>
                 </div>
               </div>
             )}

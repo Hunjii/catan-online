@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle, Castle, Dices, HandCoins, ShieldAlert, Swords } from 'lucide-react';
+import Image from 'next/image';
 import { GamePhase, GameState } from '@/lib/catan/types';
 
 interface TurnStatusBannerProps {
@@ -9,131 +9,105 @@ interface TurnStatusBannerProps {
   currentUserId: string;
 }
 
-type PhaseCopy = {
-  eyebrow: string;
-  title: string;
-  detail: string;
-  tone: 'gold' | 'red' | 'blue' | 'green';
-  icon: React.ComponentType<{ className?: string }>;
-};
+interface PhaseDetail {
+  phaseName: string;
+  hint: string;
+}
 
-const PHASE_COPY: Record<GamePhase, PhaseCopy> = {
+const PHASE_DETAILS: Record<GamePhase, PhaseDetail> = {
   lobby: {
-    eyebrow: 'PHÒNG CHỜ',
-    title: 'Sẵn sàng khai phá',
-    detail: 'Chờ chủ phòng bắt đầu ván đấu.',
-    tone: 'blue',
-    icon: Castle,
+    phaseName: 'LOBBY PHASE',
+    hint: 'Waiting for host to start the game',
   },
   setup_round_1: {
-    eyebrow: 'THIẾT LẬP · VÒNG 1',
-    title: 'Đặt làng đầu tiên',
-    detail: 'Chọn một giao điểm hợp lệ, sau đó nối đường khởi đầu.',
-    tone: 'gold',
-    icon: Castle,
+    phaseName: 'SETUP PHASE',
+    hint: 'Place your initial settlement and road',
   },
   setup_round_2: {
-    eyebrow: 'THIẾT LẬP · VÒNG 2',
-    title: 'Đặt làng thứ hai',
-    detail: 'Bạn sẽ nhận tài nguyên từ các ô lân cận sau khi đặt làng.',
-    tone: 'gold',
-    icon: Castle,
+    phaseName: 'SETUP PHASE',
+    hint: 'Place your second settlement to harvest starting resources',
   },
   turn_roll_dice: {
-    eyebrow: 'GIAI ĐOẠN XÚC XẮC',
-    title: 'Đến lượt gieo xúc xắc',
-    detail: 'Gieo xúc xắc để kích hoạt tài nguyên trên đảo.',
-    tone: 'gold',
-    icon: Dices,
+    phaseName: 'MAIN PHASE',
+    hint: 'Roll the dice to produce resources',
   },
   turn_robber_discard: {
-    eyebrow: 'TƯỚNG CƯỚP · XẢ BÀI',
-    title: 'Bảo vệ kho tài nguyên',
-    detail: 'Người chơi có hơn 7 thẻ phải xả một nửa số thẻ.',
-    tone: 'red',
-    icon: ShieldAlert,
+    phaseName: 'ROBBER EVENT',
+    hint: 'Players with more than 7 cards must discard half',
   },
   turn_robber_move: {
-    eyebrow: 'TƯỚNG CƯỚP · DI CHUYỂN',
-    title: 'Chọn ô cho Tướng cướp',
-    detail: 'Chọn một ô khác để khóa sản lượng và chuẩn bị cướp bài.',
-    tone: 'red',
-    icon: Swords,
+    phaseName: 'ROBBER EVENT',
+    hint: 'Move the robber to a new hex to block production',
   },
   turn_robber_steal: {
-    eyebrow: 'TƯỚNG CƯỚP · CƯỚP BÀI',
-    title: 'Chọn một đối thủ',
-    detail: 'Chọn người chơi cạnh ô cướp để lấy một thẻ ngẫu nhiên.',
-    tone: 'red',
-    icon: Swords,
+    phaseName: 'ROBBER EVENT',
+    hint: 'Select an opponent adjacent to the robber to steal from',
   },
   turn_actions: {
-    eyebrow: 'GIAI ĐOẠN HÀNH ĐỘNG',
-    title: 'Xây dựng đế chế',
-    detail: 'Giao thương, xây dựng hoặc mua bài phát triển trước khi kết thúc lượt.',
-    tone: 'green',
-    icon: HandCoins,
+    phaseName: 'ACTION PHASE',
+    hint: 'Trade, build roads or settlements, or buy dev cards',
   },
   game_over: {
-    eyebrow: 'KẾT THÚC VÁN ĐẤU',
-    title: 'Đảo Catan đã có nhà vua',
-    detail: 'Xem kết quả và bắt đầu lại một cuộc chinh phục mới.',
-    tone: 'gold',
-    icon: Castle,
+    phaseName: 'GAME OVER',
+    hint: 'The legendary island of Catan has crowned its champion',
   },
-};
-
-const TONE_STYLES = {
-  gold: 'border-amber-300/70 shadow-[0_10px_35px_rgba(245,158,11,0.24)]',
-  red: 'border-red-400/80 shadow-[0_10px_35px_rgba(220,38,38,0.25)]',
-  blue: 'border-sky-300/70 shadow-[0_10px_35px_rgba(14,165,233,0.2)]',
-  green: 'border-emerald-300/70 shadow-[0_10px_35px_rgba(16,185,129,0.2)]',
-};
-
-const ICON_TONE_STYLES = {
-  gold: 'bg-amber-300/15 text-amber-200 border-amber-200/50',
-  red: 'bg-red-400/15 text-red-200 border-red-300/50',
-  blue: 'bg-sky-300/15 text-sky-200 border-sky-200/50',
-  green: 'bg-emerald-300/15 text-emerald-200 border-emerald-200/50',
 };
 
 export const TurnStatusBanner: React.FC<TurnStatusBannerProps> = ({ gameState, currentUserId }) => {
   const activePlayerId = gameState.playerOrder[gameState.activePlayerIndex];
   const activePlayer = gameState.players.find((player) => player.id === activePlayerId);
-  const copy = PHASE_COPY[gameState.phase];
-  const Icon = copy.icon;
   const isMyTurn = activePlayerId === currentUserId;
-  const diceLabel = gameState.lastDiceRoll
-    ? `${gameState.lastDiceRoll[0]} + ${gameState.lastDiceRoll[1]} = ${gameState.lastDiceRoll[0] + gameState.lastDiceRoll[1]}`
-    : 'Chưa gieo';
+  const currentPhase = PHASE_DETAILS[gameState.phase] || {
+    phaseName: 'MAIN PHASE',
+    hint: 'Play your turn actions',
+  };
+
+  const playerNameText = activePlayer
+    ? isMyTurn
+      ? `${activePlayer.name}'s turn (You)`
+      : `${activePlayer.name}'s turn`
+    : 'Waiting for turn';
 
   return (
-    <section
-      aria-live="polite"
-      className={`game-panel pointer-events-none relative overflow-hidden rounded-2xl border-2 px-3 py-2.5 text-catan-parchment backdrop-blur-md transition-all duration-300 ${TONE_STYLES[copy.tone]}`}
-    >
-      <div className="absolute inset-0 bg-gradient-to-r from-black/25 via-transparent to-black/35" />
-      <div className="relative flex items-center gap-3">
-        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${ICON_TONE_STYLES[copy.tone]}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-            <span className="font-sans text-[9px] font-black tracking-[0.18em] text-amber-200/75">{copy.eyebrow}</span>
-            <span className="font-sans text-[9px] font-bold text-white/45">LƯỢT {String(gameState.turnNumber).padStart(2, '0')}</span>
-          </div>
-          <h2 className="truncate text-sm font-black tracking-wide text-white sm:text-base">{copy.title}</h2>
-          <p className="truncate font-sans text-[10px] text-catan-parchment/75 sm:text-[11px]">{copy.detail}</p>
-        </div>
-        <div className="hidden shrink-0 flex-col items-end gap-1 sm:flex">
-          <span className={`rounded-full border px-2 py-0.5 font-sans text-[9px] font-black tracking-wider ${isMyTurn ? 'border-emerald-300/70 bg-emerald-400/15 text-emerald-100' : 'border-white/20 bg-black/25 text-white/60'}`}>
-            {isMyTurn ? 'LƯỢT CỦA BẠN' : activePlayer ? `LƯỢT ${activePlayer.name}` : 'ĐANG CHỜ'}
-          </span>
-          <span className="flex items-center gap-1 font-sans text-[10px] font-bold text-amber-100/65">
-            <AlertTriangle className="h-3 w-3 text-amber-300/80" /> Xúc xắc: {diceLabel}
-          </span>
-        </div>
+    <div className="relative flex items-center gap-3 sm:gap-3.5 rounded-2xl border border-[#9b6f28]/85 bg-gradient-to-b from-[#20140a]/95 via-[#140c06]/95 to-[#0b0502]/95 px-3.5 py-2 sm:px-4 sm:py-2.5 shadow-[0_8px_24px_rgba(0,0,0,0.75),inset_0_1px_1px_rgba(255,225,140,0.15)] backdrop-blur-md select-none font-catan">
+      {/* Corner decorative accents */}
+      <span className="absolute left-1.5 top-1.5 h-1 w-1 rounded-full bg-[#d4a359]/70" />
+      <span className="absolute right-1.5 top-1.5 h-1 w-1 rounded-full bg-[#d4a359]/70" />
+      <span className="absolute left-1.5 bottom-1.5 h-1 w-1 rounded-full bg-[#d4a359]/70" />
+      <span className="absolute right-1.5 bottom-1.5 h-1 w-1 rounded-full bg-[#d4a359]/70" />
+
+      {/* Calendar Icon Badge on Left */}
+      <div className="relative h-10 w-10 sm:h-11 sm:w-11 shrink-0 flex items-center justify-center">
+        <Image
+          src="/assets/ingame/ingame_turn_calendar.svg"
+          alt="Turn Calendar"
+          fill
+          className="object-contain drop-shadow"
+        />
       </div>
-    </section>
+
+      {/* Text Info Column */}
+      <div className="min-w-0 flex-1 flex flex-col justify-center">
+        {/* Line 1: TURN X • PHASE */}
+        <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-bold tracking-widest text-[#d8ad56] font-vietnam uppercase drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+          <span>TURN {gameState.turnNumber || 1}</span>
+          <span className="opacity-60">•</span>
+          <span>{currentPhase.phaseName}</span>
+        </div>
+
+        {/* Line 2: Status Dot + Player's Turn */}
+        <div className="flex items-center gap-2 mt-0.5">
+          <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.85)] animate-pulse" />
+          <span className="truncate text-sm sm:text-[15px] font-bold tracking-wide text-[#fcfbf9] font-vietnam drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+            {playerNameText}
+          </span>
+        </div>
+
+        {/* Line 3: Helper Tip */}
+        <p className="truncate text-[11px] sm:text-xs font-medium text-[#c8a15b] font-vietnam mt-0.5 tracking-wide">
+          {currentPhase.hint}
+        </p>
+      </div>
+    </div>
   );
 };

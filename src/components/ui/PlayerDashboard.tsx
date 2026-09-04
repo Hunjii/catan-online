@@ -2,66 +2,38 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { GameState, PlayerColor, COLOR_MAP } from '@/lib/catan/types';
-import { Star, Layers, Shield, Navigation } from 'lucide-react';
+import { GameState, COLOR_MAP } from '@/lib/catan/types';
+import { Plus, Navigation, Shield } from 'lucide-react';
 
 interface PlayerDashboardProps {
   gameState: GameState;
   currentUserId: string;
 }
 
-const PLAYER_THEMES: Record<
-  PlayerColor,
-  { gradient: string; border: string; activeGlow: string; ringColor: string }
-> = {
-  red: {
-    gradient: 'bg-gradient-to-r from-red-950/90 via-red-900/80 to-black/80',
-    border: 'border-red-600/90',
-    activeGlow: 'ring-4 ring-red-500/60 shadow-[0_0_20px_rgba(239,68,68,0.5)]',
-    ringColor: 'border-red-400',
-  },
-  blue: {
-    gradient: 'bg-gradient-to-r from-blue-950/90 via-blue-900/80 to-black/80',
-    border: 'border-blue-600/90',
-    activeGlow: 'ring-4 ring-blue-500/60 shadow-[0_0_20px_rgba(59,130,246,0.5)]',
-    ringColor: 'border-blue-400',
-  },
-  green: {
-    gradient: 'bg-gradient-to-r from-emerald-950/90 via-emerald-900/80 to-black/80',
-    border: 'border-emerald-600/90',
-    activeGlow: 'ring-4 ring-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.5)]',
-    ringColor: 'border-emerald-400',
-  },
-  orange: {
-    gradient: 'bg-gradient-to-r from-amber-950/90 via-yellow-950/80 to-black/80',
-    border: 'border-amber-600/90',
-    activeGlow: 'ring-4 ring-amber-500/60 shadow-[0_0_20px_rgba(245,158,11,0.5)]',
-    ringColor: 'border-amber-400',
-  },
-  yellow: {
-    gradient: 'bg-gradient-to-r from-yellow-950/90 via-amber-900/80 to-black/80',
-    border: 'border-yellow-500/90',
-    activeGlow: 'ring-4 ring-yellow-400/60 shadow-[0_0_20px_rgba(234,179,8,0.5)]',
-    ringColor: 'border-yellow-400',
-  },
-  brown: {
-    gradient: 'bg-gradient-to-r from-amber-950/90 via-stone-900/80 to-black/80',
-    border: 'border-amber-800/90',
-    activeGlow: 'ring-4 ring-amber-700/60 shadow-[0_0_20px_rgba(120,53,15,0.5)]',
-    ringColor: 'border-amber-700',
-  },
-  purple: {
-    gradient: 'bg-gradient-to-r from-purple-950/90 via-purple-900/80 to-black/80',
-    border: 'border-purple-600/90',
-    activeGlow: 'ring-4 ring-purple-500/60 shadow-[0_0_20px_rgba(168,85,247,0.5)]',
-    ringColor: 'border-purple-400',
-  },
-  white: {
-    gradient: 'bg-gradient-to-r from-slate-900/90 via-slate-800/80 to-black/80',
-    border: 'border-slate-400/90',
-    activeGlow: 'ring-4 ring-slate-300/60 shadow-[0_0_20px_rgba(248,250,252,0.5)]',
-    ringColor: 'border-slate-300',
-  },
+const AVATAR_FALLBACKS = ['alexander', 'elara', 'magnus', 'lyra'] as const;
+
+function getAvatarSrc(avatarSeed: string | undefined, slotIndex: number) {
+  if (!avatarSeed) {
+    return `/assets/avatars/${AVATAR_FALLBACKS[slotIndex % AVATAR_FALLBACKS.length]}.png`;
+  }
+  const seed = avatarSeed.toLowerCase();
+  const avatar =
+    AVATAR_FALLBACKS.find((candidate) => seed.includes(candidate)) ??
+    AVATAR_FALLBACKS[slotIndex % AVATAR_FALLBACKS.length];
+  return `/assets/avatars/${avatar}.png`;
+}
+
+// Fallback color mapping for custom player colors
+const SAFE_COLOR_MAP: Record<string, string> = {
+  ...COLOR_MAP,
+  red: '#e11d48',
+  blue: '#1d63ed',
+  green: '#15803d',
+  yellow: '#eab308',
+  orange: '#ea580c',
+  brown: '#78350f',
+  white: '#f8fafc',
+  purple: '#9333ea',
 };
 
 export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
@@ -69,118 +41,318 @@ export const PlayerDashboard: React.FC<PlayerDashboardProps> = ({
   currentUserId,
 }) => {
   const activePlayerId = gameState.playerOrder[gameState.activePlayerIndex];
+  const activePlayer = gameState.players.find((p) => p.id === activePlayerId);
+  const myPlayer = gameState.players.find((p) => p.id === currentUserId);
+  const mySlotIndex = gameState.playerOrder.findIndex((id) => id === currentUserId);
+
+  const totalSlots = 4;
+  const currentPlayersCount = gameState.playerOrder.length;
+  const openSeatsCount = Math.max(0, totalSlots - currentPlayersCount);
+
+  // Calculate detailed points breakdown for current user
+  const mySettlementsCount = Object.values(gameState.vertices).filter(
+    (v) => v.building?.playerId === currentUserId && v.building.type === 'settlement'
+  ).length;
+  const mySettlementsPoints = mySettlementsCount * 1;
+
+  const myCitiesCount = Object.values(gameState.vertices).filter(
+    (v) => v.building?.playerId === currentUserId && v.building.type === 'city'
+  ).length;
+  const myCitiesPoints = myCitiesCount * 2;
+
+  const myDevCardVp = myPlayer
+    ? myPlayer.devCards.filter((c) => c === 'victory_point').length
+    : 0;
+
+  const myLongestRoadVp = myPlayer?.hasLongestRoad ? 2 : 0;
+  const myLargestArmyVp = myPlayer?.hasLargestArmy ? 2 : 0;
+
+  const myTotalPoints = myPlayer
+    ? myPlayer.victoryPoints
+    : mySettlementsPoints + myCitiesPoints + myDevCardVp + myLongestRoadVp + myLargestArmyVp;
+
+  const isMyTurn = activePlayerId === currentUserId;
+
+  // Opponents list (other players excluding self)
+  const opponentIds = gameState.playerOrder.filter((id) => id !== currentUserId);
 
   return (
-    <div className="game-panel w-full flex flex-col gap-2.5 rounded-2xl border-2 border-catan-gold-trim/70 p-2 pointer-events-auto select-none font-catan">
-      <div className="flex items-center justify-between border-b border-catan-gold-trim/30 px-1 pb-2">
-        <div>
-          <p className="font-sans text-[9px] font-black uppercase tracking-[0.18em] text-amber-200/65">HỘI ĐỒNG ĐẢO</p>
-          <p className="text-xs font-black tracking-wide text-catan-parchment">Các nhà khai phá</p>
-        </div>
-        <span className="rounded-full border border-catan-gold-trim/45 bg-black/25 px-2 py-1 font-sans text-[10px] font-bold text-amber-100/75">
-          {gameState.players.length}/4
-        </span>
-      </div>
-      {gameState.playerOrder.map((playerId) => {
-        const player = gameState.players.find((p) => p.id === playerId);
-        if (!player) return null;
+    <div className="flex w-full flex-col gap-2.5 sm:gap-3 select-none font-catan">
+      {/* 1. CURRENT USER PROFILE & SCORE DETAILS CARD (Authentic medieval game card matching reference) */}
+      {myPlayer && (
+        <div className="relative flex flex-col rounded-2xl px-[12%] pt-[11%] pb-[11%] text-slate-100 shadow-[0_16px_36px_rgba(0,0,0,0.92)] overflow-hidden">
+          {/* Authentic High-Res Medieval Game Frame Asset */}
+          <Image
+            src="/assets/ingame/ingame_score_card_frame.png"
+            alt="Score Card Frame"
+            fill
+            className="object-fill pointer-events-none -z-0 select-none"
+            priority
+          />
 
-        const isActive = playerId === activePlayerId;
-        const isMe = playerId === currentUserId;
-        const totalCards = Object.values(player.resources).reduce(
-          (a, b) => a + b,
-          0
-        );
-        const theme = PLAYER_THEMES[player.color] || PLAYER_THEMES.red;
-
-        return (
-          <div
-            key={player.id}
-            className={`flex items-center gap-3 px-3 py-2 rounded-2xl border-2 sm:border-3 transition-all duration-300 relative overflow-hidden shadow-xl
-              ${theme.gradient} ${theme.border}
-              ${
-                isActive
-                  ? `${theme.activeGlow} scale-[1.03] z-10`
-                  : 'opacity-90 hover:opacity-100 hover:scale-[1.01]'
-              }
-            `}
-          >
-            {/* Skeuomorphic inner bevel */}
-            <div className="absolute inset-0 shadow-inset-wood pointer-events-none rounded-2xl" />
-
-            {/* Avatar Circle with Gold/Color Rim */}
-            <div
-              className={`relative w-11 h-11 sm:w-13 sm:h-13 rounded-full overflow-hidden border-2 shadow-md shrink-0 bg-catan-dark-wood ${theme.ringColor}`}
-            >
-              {(() => {
-                let avatarSrc = '/assets/avatar_hung_orig.png';
-                if (player.name === 'Mai' || player.color === 'blue') avatarSrc = '/assets/avatar_mai_orig.png';
-                else if (player.name === 'Nam' || player.color === 'green') avatarSrc = '/assets/avatar_nam_orig.png';
-                else if (player.name === 'Linh' || player.color === 'orange') avatarSrc = '/assets/avatar_linh_orig.png';
-                
-                return (
+          {/* Inner Content sitting safely within the frame's dark wood center */}
+          <div className="relative z-10 flex flex-col w-full">
+            {/* Top Row: Avatar + Name + Turn Ribbon */}
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              {/* Avatar Medallion with Ornate 3D Gold Ring */}
+              <div className="relative h-13 w-13 sm:h-14 sm:w-14 rounded-full p-[2px] bg-gradient-to-tr from-[#926415] via-[#ffd700] to-[#b37e1b] shadow-[0_4px_12px_rgba(0,0,0,0.9),inset_0_2px_4px_rgba(255,255,255,0.4)] shrink-0">
+                <div className="relative w-full h-full rounded-full overflow-hidden border border-[#52330a] bg-black/80 shadow-inner">
                   <Image
-                    src={avatarSrc}
-                    alt={player.name}
+                    src={getAvatarSrc(myPlayer.avatarSeed || myPlayer.name, mySlotIndex >= 0 ? mySlotIndex : 0)}
+                    alt={myPlayer.name}
                     fill
                     className="object-cover"
-                    sizes="48px"
+                    sizes="56px"
+                    priority
                   />
-                );
-              })()}
-            </div>
-
-            {/* Player Info (Name, VP Star, Resource Count) */}
-            <div className="flex flex-col flex-1 z-10 min-w-0">
-              <div className="flex items-center justify-between gap-1">
-                <span
-                  className={`text-sm sm:text-base font-black truncate tracking-wide ${
-                    isActive ? 'text-white' : 'text-catan-parchment'
-                  }`}
-                >
-                  {player.name} {isMe && '(Bạn)'}
-                </span>
+                </div>
               </div>
 
-              {/* Stats: Star VP & Cards */}
-              <div className="flex items-center gap-3 text-xs text-amber-200/90 font-bold mt-0.5 font-sans">
-                <span className="flex items-center gap-1 text-amber-300 drop-shadow">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />{' '}
-                  {isMe ? player.victoryPoints : player.publicVictoryPoints}
+              {/* Name & Turn Ribbon */}
+              <div className="min-w-0 flex-1 flex flex-col items-start">
+                <span className="truncate w-full font-serif font-black text-xs sm:text-sm text-white tracking-wide uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.95)]">
+                  {myPlayer.name}
                 </span>
-                <span className="flex items-center gap-1 text-slate-200 drop-shadow">
-                  <Layers className="w-3.5 h-3.5 text-amber-300" /> {totalCards}
-                </span>
-                {player.devCards.length > 0 && (
-                  <span className="text-[11px] text-purple-300">
-                    🎴 {player.devCards.length}
-                  </span>
+
+                {/* Turn Ribbon Badge with Swallowtail cut */}
+                {isMyTurn ? (
+                  <div className="relative inline-flex items-center px-2.5 py-0.5 mt-0.5 bg-gradient-to-r from-[#15803d] via-[#22c55e] to-[#15803d] border-y border-[#86efac]/80 text-white font-serif font-black text-[9px] sm:text-[10px] tracking-wider shadow-[0_2px_6px_rgba(0,0,0,0.6)] uppercase [clip-path:polygon(0_0,calc(100%-6px)_0,100%_50%,calc(100%-6px)_100%,0_100%)]">
+                    <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] pr-1">YOUR TURN</span>
+                  </div>
+                ) : (
+                  <div className="relative inline-flex items-center px-2.5 py-0.5 mt-0.5 bg-gradient-to-r from-[#5c2b09] via-[#85410d] to-[#5c2b09] border-y border-[#fbbf24]/60 text-[#fef3c7] font-serif font-bold text-[9px] sm:text-[10px] tracking-wider shadow-[0_2px_6px_rgba(0,0,0,0.6)] uppercase [clip-path:polygon(0_0,calc(100%-6px)_0,100%_50%,calc(100%-6px)_100%,0_100%)] max-w-full">
+                    <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] truncate pr-1">
+                      {activePlayer?.name.toUpperCase() || 'OPPONENT'}&apos;S TURN
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
 
-            {/* Special Badges (Longest Road / Largest Army) */}
-            <div className="flex flex-col items-end gap-1 z-10">
-              {player.hasLongestRoad && (
-                <span
-                  className="px-1.5 py-0.5 rounded-full bg-blue-600/90 text-[10px] font-bold text-white border border-blue-400 flex items-center gap-0.5 shadow-sm"
-                  title="Con đường dài nhất (+2 VP)"
-                >
-                  <Navigation className="w-2.5 h-2.5" /> {player.longestRoadLength}
+            {/* Center Plaque: Total Points */}
+            <div className="w-full my-2 px-3 py-1.5 sm:py-2 rounded-xl bg-gradient-to-b from-[#221307]/90 via-[#140b04]/90 to-[#0b0502]/90 border border-[#8a6834]/80 flex items-center justify-between shadow-[inset_0_3px_10px_rgba(0,0,0,0.95),0_2px_6px_rgba(0,0,0,0.7)] backdrop-blur-xs">
+              <div className="relative h-8 w-8 sm:h-9 sm:w-9 shrink-0">
+                <Image
+                  src="/assets/icons/trophy.png"
+                  alt="Trophy"
+                  fill
+                  className="object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,0.85)]"
+                  priority
+                />
+              </div>
+              <div className="flex flex-col items-end">
+                <span className="font-serif text-[10px] sm:text-[11px] font-semibold text-[#cbb596] tracking-wider">
+                  Total Points
                 </span>
-              )}
-              {player.hasLargestArmy && (
-                <span
-                  className="px-1.5 py-0.5 rounded-full bg-red-600/90 text-[10px] font-bold text-white border border-red-400 flex items-center gap-0.5 shadow-sm"
-                  title="Đội quân lớn nhất (+2 VP)"
-                >
-                  <Shield className="w-2.5 h-2.5" /> {player.playedKnights}
+                <span className="font-serif font-black text-2xl sm:text-3xl text-[#facc15] leading-none drop-shadow-[0_2px_6px_rgba(0,0,0,0.95)] mt-0.5">
+                  {myTotalPoints}
                 </span>
-              )}
+              </div>
+            </div>
+
+            {/* Detailed Points Breakdown Rows */}
+            <div className="flex flex-col gap-0.5 w-full">
+              {/* 1. Victory Points (from dev cards) */}
+              <div className="flex items-center justify-between py-0.5 px-1 border-b border-[#3b2310]/80 shadow-[0_1px_0_rgba(255,235,170,0.03)]">
+                <div className="flex items-center gap-2">
+                  <div className="relative h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0">
+                    <Image
+                      src="/assets/icons/victory-star.png"
+                      alt="Star"
+                      fill
+                      className="object-contain drop-shadow"
+                    />
+                  </div>
+                  <span className="font-serif text-[11px] sm:text-xs font-semibold text-[#e8dccb]">Victory Points</span>
+                </div>
+                <span className="font-serif font-bold text-xs sm:text-sm text-[#facc15] drop-shadow">{myDevCardVp}</span>
+              </div>
+
+              {/* 2. Longest Road */}
+              <div className="flex items-center justify-between py-0.5 px-1 border-b border-[#3b2310]/80 shadow-[0_1px_0_rgba(255,235,170,0.03)]">
+                <div className="flex items-center gap-2">
+                  <div className="relative h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0 flex items-center justify-center">
+                    <Image
+                      src="/assets/ingame/ingame_road_piece.png"
+                      alt="Road"
+                      fill
+                      className="object-contain drop-shadow"
+                    />
+                  </div>
+                  <span className="font-serif text-[11px] sm:text-xs font-semibold text-[#e8dccb]">Longest Road</span>
+                </div>
+                <span className="font-serif font-bold text-xs sm:text-sm text-[#facc15] drop-shadow">{myLongestRoadVp}</span>
+              </div>
+
+              {/* 3. Largest Army */}
+              <div className="flex items-center justify-between py-0.5 px-1 border-b border-[#3b2310]/80 shadow-[0_1px_0_rgba(255,235,170,0.03)]">
+                <div className="flex items-center gap-2">
+                  <div className="relative h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0 flex items-center justify-center">
+                    <Image
+                      src="/assets/icons/knight-helmet.png"
+                      alt="Knight Helmet"
+                      fill
+                      className="object-contain drop-shadow"
+                    />
+                  </div>
+                  <span className="font-serif text-[11px] sm:text-xs font-semibold text-[#e8dccb]">Largest Army</span>
+                </div>
+                <span className="font-serif font-bold text-xs sm:text-sm text-[#facc15] drop-shadow">{myLargestArmyVp}</span>
+              </div>
+
+              {/* 4. Settlement */}
+              <div className="flex items-center justify-between py-0.5 px-1 border-b border-[#3b2310]/80 shadow-[0_1px_0_rgba(255,235,170,0.03)]">
+                <div className="flex items-center gap-2">
+                  <div className="relative h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0">
+                    <Image
+                      src="/assets/ingame/ingame_settlement_piece.png"
+                      alt="Settlement"
+                      fill
+                      className="object-contain drop-shadow"
+                    />
+                  </div>
+                  <span className="font-serif text-[11px] sm:text-xs font-semibold text-[#e8dccb]">Settlement</span>
+                </div>
+                <span className="font-serif font-bold text-xs sm:text-sm text-[#facc15] drop-shadow">{mySettlementsPoints}</span>
+              </div>
+
+              {/* 5. City */}
+              <div className="flex items-center justify-between py-0.5 px-1">
+                <div className="flex items-center gap-2">
+                  <div className="relative h-4.5 w-4.5 sm:h-5 sm:w-5 shrink-0">
+                    <Image
+                      src="/assets/ingame/ingame_city_piece.png"
+                      alt="City"
+                      fill
+                      className="object-contain drop-shadow"
+                    />
+                  </div>
+                  <span className="font-serif text-[11px] sm:text-xs font-semibold text-[#e8dccb]">City</span>
+                </div>
+                <span className="font-serif font-bold text-xs sm:text-sm text-[#facc15] drop-shadow">{myCitiesPoints}</span>
+              </div>
             </div>
           </div>
-        );
-      })}
+        </div>
+      )}
+
+      {/* 2. OPPONENTS LIST (No Victory Points displayed, only Cards & Badges) */}
+      <div className="flex flex-col gap-2 rounded-2xl bg-[#140d07]/90 p-2.5 sm:p-3 border border-[#442c16]/80 shadow-md backdrop-blur-md">
+        <div className="px-1 pb-1 text-[11px] font-serif font-bold text-[#cbb596] uppercase tracking-wider flex items-center justify-between border-b border-[#2d1b0d]">
+          <span>Opponents</span>
+          <span className="text-[10px] text-stone-400">Cards</span>
+        </div>
+
+        {opponentIds.map((playerId) => {
+          const player = gameState.players.find((p) => p.id === playerId);
+          if (!player) return null;
+
+          const isActive = playerId === activePlayerId;
+          const totalCards = Object.values(player.resources).reduce((a, b) => a + b, 0);
+          const playerColorHex = SAFE_COLOR_MAP[player.color] || '#eab308';
+          const slotIndex = gameState.playerOrder.findIndex((id) => id === playerId);
+
+          return (
+            <div
+              key={player.id}
+              className={`relative flex items-center justify-between gap-3 rounded-xl p-2 sm:p-2.5 transition-all ${
+                isActive
+                  ? 'bg-gradient-to-r from-[#2c1a0c] to-[#1e1208] border border-[#f5b829] shadow-[0_0_12px_rgba(245,184,41,0.3)]'
+                  : 'bg-[#120b06]/80 border border-[#2e1d0e] hover:border-[#4d321a]'
+              }`}
+            >
+              {/* Left: Avatar with Color Ring */}
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div
+                  className="relative h-9 w-9 sm:h-10 sm:w-10 shrink-0 overflow-hidden rounded-full border-2 bg-black/60 shadow"
+                  style={{ borderColor: playerColorHex }}
+                >
+                  <Image
+                    src={getAvatarSrc(player.avatarSeed || player.name, slotIndex)}
+                    alt={player.name}
+                    fill
+                    className="object-cover"
+                    sizes="40px"
+                  />
+                </div>
+
+                {/* Name & Dev Cards Info */}
+                <div className="min-w-0 flex flex-col text-left">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-xs sm:text-sm font-bold text-[#fcfbf9] font-vietnam">
+                      {player.name}
+                    </span>
+                    {isActive && (
+                      <span className="shrink-0 rounded bg-amber-500/20 px-1 py-0.2 text-[8px] font-bold text-amber-300 font-vietnam border border-amber-500/40">
+                        Turn
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Badges: Dev Cards & Special Titles */}
+                  <div className="flex items-center gap-2 mt-0.5">
+                    {/* Dev Cards Count */}
+                    <div className="flex items-center gap-1 text-[11px] text-stone-300 font-vietnam">
+                      <div className="relative h-3.5 w-3 shrink-0">
+                        <Image
+                          src="/assets/ingame/ingame_card_icon.svg"
+                          alt="Dev Cards"
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
+                      <span className="font-bold">{player.devCards.length}</span>
+                    </div>
+
+                    {/* Special Title Badges */}
+                    {player.hasLongestRoad && (
+                      <span
+                        className="flex items-center gap-0.5 rounded bg-blue-950/80 px-1 py-0.2 text-[8px] font-bold text-blue-200 border border-blue-500/40"
+                        title={`Con đường dài nhất (${player.longestRoadLength} đoạn)`}
+                      >
+                        <Navigation className="h-2 w-2" />
+                        Road
+                      </span>
+                    )}
+                    {player.hasLargestArmy && (
+                      <span
+                        className="flex items-center gap-0.5 rounded bg-red-950/80 px-1 py-0.2 text-[8px] font-bold text-red-200 border border-red-500/40"
+                        title={`Đội quân lớn nhất (${player.playedKnights} hiệp sĩ)`}
+                      >
+                        <Shield className="h-2 w-2" />
+                        Army
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Resource Cards Count Token */}
+              <div
+                className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full border-[1.5px] bg-gradient-to-b from-[#221509] to-[#0a0502] text-xs sm:text-sm font-bold text-[#f2cf7e] shadow"
+                style={{ borderColor: playerColorHex }}
+                title={`${totalCards} Resource Cards in hand`}
+              >
+                {totalCards}
+              </div>
+            </div>
+          );
+        })}
+
+        {/* 3. Open Seat Slots */}
+        {Array.from({ length: openSeatsCount }).map((_, index) => (
+          <div
+            key={`open-seat-${index}`}
+            className="flex items-center gap-2.5 rounded-xl border border-[#2a1b0e]/60 bg-[#0d0805]/40 p-2 text-stone-500 shadow-inner"
+          >
+            <div className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-full border border-stone-700/40 bg-stone-900/40">
+              <Plus className="h-4 w-4" />
+            </div>
+            <span className="text-xs font-semibold text-stone-400">Open Seat</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
+

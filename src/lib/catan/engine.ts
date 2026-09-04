@@ -38,6 +38,25 @@ export type GameAction =
   | { type: 'END_TURN'; playerId: string }
   | { type: 'SEND_CHAT'; message: ChatMessage };
 
+function getUniquePlayerName(name: string, players: Player[], playerId?: string): string {
+  const baseName = name.trim() || 'Settler';
+  const normalizedNames = new Set(
+    players
+      .filter((player) => player.id !== playerId)
+      .map((player) => player.name.trim().toLocaleLowerCase())
+  );
+
+  if (!normalizedNames.has(baseName.toLocaleLowerCase())) return baseName;
+
+  let suffix = 2;
+  let candidate = `${baseName} (${suffix})`;
+  while (normalizedNames.has(candidate.toLocaleLowerCase())) {
+    suffix += 1;
+    candidate = `${baseName} (${suffix})`;
+  }
+  return candidate;
+}
+
 export function createInitialGameState(roomId: string): GameState {
   const board = generateBoard(true);
 
@@ -264,17 +283,21 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const existing = nextState.players.find((p) => p.id === action.player.id);
       if (existing) {
         existing.connected = true;
-        existing.name = action.player.name || existing.name;
+        existing.name = getUniquePlayerName(action.player.name || existing.name, nextState.players, existing.id);
+        if (action.player.avatarSeed) existing.avatarSeed = action.player.avatarSeed;
+        if (action.player.pieceStyle) existing.pieceStyle = action.player.pieceStyle;
       } else {
-        const availableColors: PlayerColor[] = ['red', 'blue', 'orange', 'white', 'green', 'purple'];
-        const usedColors = nextState.players.map((p) => p.color);
-        const assignedColor = availableColors.find((c) => !usedColors.includes(c)) || 'red';
+        // Cố định màu người chơi theo 4 khung ghế ở Sảnh chờ Lobby:
+        // Ghế 1: Đỏ (red), Ghế 2: Xanh biển (blue), Ghế 3: Xanh lá (green), Ghế 4: Vàng kim/Cam (orange)
+        const LOBBY_SLOT_COLORS: PlayerColor[] = ['red', 'blue', 'green', 'orange'];
+        const slotIndex = nextState.players.length;
+        const assignedColor = LOBBY_SLOT_COLORS[slotIndex % LOBBY_SLOT_COLORS.length];
 
         const isHost = nextState.players.length === 0;
         const newPlayer: Player = {
           id: action.player.id,
-          name: action.player.name,
-          color: action.player.color || assignedColor,
+          name: getUniquePlayerName(action.player.name, nextState.players),
+          color: assignedColor, // Luôn lấy theo khung ghế ở sảnh chờ, tuyệt đối không lấy từ profile setting
           pieceStyle: action.player.pieceStyle || 'classic_wood',
           avatarSeed: action.player.avatarSeed || action.player.name,
           isHost,
@@ -311,9 +334,9 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
     case 'UPDATE_PROFILE': {
       const player = nextState.players.find((p) => p.id === action.playerId);
       if (player) {
-        player.name = action.name;
-        player.color = action.color;
+        player.name = getUniquePlayerName(action.name, nextState.players, player.id);
         player.pieceStyle = action.pieceStyle;
+        // player.color giữ nguyên theo khung ghế lobby, không lấy config từ settings
       }
       return nextState;
     }
@@ -324,8 +347,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return nextState;
     }
 
-    case 'START_GAME': {
-      if (nextState.players.length < 2) return nextState; // Support 2-4 players
+    case 'START_GAME': {    if (nextState.players.length < 2) return nextState; // Support 2-4 players
 
       // Shuffle player turn order
       const order = [...nextState.players.map((p) => p.id)];

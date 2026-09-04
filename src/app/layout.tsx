@@ -1,48 +1,128 @@
 import type { Metadata } from 'next';
-import { Alegreya_SC, Be_Vietnam_Pro, Cinzel, Cinzel_Decorative, Cormorant_Garamond, Grenze_Gotisch, Inter } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-const cinzel = Cinzel({
-  subsets: ['latin'],
-  weight: ['600', '700', '800', '900'],
+const cinzel = localFont({
+  src: [{
+    path: '../../public/fonts/Cinzel-Variable.ttf',
+    weight: '600 900',
+    style: 'normal',
+  }],
   variable: '--font-cinzel',
+  display: 'swap',
 });
 
-const cinzelDecorative = Cinzel_Decorative({
-  subsets: ['latin'],
-  weight: ['700', '900'],
+const cinzelDecorative = localFont({
+  src: [
+    {
+      path: '../../public/fonts/CinzelDecorative-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/CinzelDecorative-Black.ttf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
   variable: '--font-cinzel-decorative',
+  display: 'swap',
 });
 
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
+const cormorant = localFont({
+  src: [
+    {
+      path: '../../public/fonts/CormorantGaramond-Variable.ttf',
+      weight: '300 700',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/CormorantGaramond-Italic-Variable.ttf',
+      weight: '300 700',
+      style: 'italic',
+    },
+  ],
   variable: '--font-cormorant',
+  display: 'swap',
 });
 
-const grenzeGotisch = Grenze_Gotisch({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['600', '700', '800', '900'],
+const grenzeGotisch = localFont({
+  src: [{
+    path: '../../public/fonts/GrenzeGotisch-Variable.ttf',
+    weight: '600 900',
+    style: 'normal',
+  }],
   variable: '--font-grenze-gotisch',
+  display: 'swap',
 });
 
-const alegreyaSC = Alegreya_SC({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['700', '800', '900'],
+const alegreyaSC = localFont({
+  src: [
+    {
+      path: '../../public/fonts/AlegreyaSC-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/AlegreyaSC-ExtraBold.ttf',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/AlegreyaSC-Black.ttf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
   variable: '--font-alegreya-sc',
+  display: 'swap',
 });
 
-const beVietnam = Be_Vietnam_Pro({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['400', '500', '600', '700', '800', '900'],
+const beVietnam = localFont({
+  src: [
+    {
+      path: '../../public/fonts/BeVietnamPro-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/BeVietnamPro-Medium.ttf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/BeVietnamPro-SemiBold.ttf',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/BeVietnamPro-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/BeVietnamPro-ExtraBold.ttf',
+      weight: '800',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/BeVietnamPro-Black.ttf',
+      weight: '900',
+      style: 'normal',
+    },
+  ],
   variable: '--font-be-vietnam',
+  display: 'swap',
 });
 
-const inter = Inter({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['400', '500', '600', '700'],
+const inter = localFont({
+  src: [{
+    path: '../../public/fonts/Inter-Variable.ttf',
+    weight: '100 900',
+    style: 'normal',
+  }],
   variable: '--font-inter',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -57,7 +137,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${cinzel.variable} ${cinzelDecorative.variable} ${cormorant.variable} ${grenzeGotisch.variable} ${alegreyaSC.variable} ${beVietnam.variable} ${inter.variable}`}>
-      <body className="antialiased select-none text-amber-50 font-sans">{children}</body>
+      <body suppressHydrationWarning className="antialiased select-none text-amber-50 font-sans">{children}</body>
     </html>
   );
 }

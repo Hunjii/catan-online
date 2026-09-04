@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { usePlayerProfile } from '@/hooks/usePlayerProfile';
 import { useMultiplayer } from '@/hooks/useMultiplayer';
 import { LobbyRoom } from '@/components/ui/LobbyRoom';
@@ -18,12 +18,12 @@ import { ProfileModal } from '@/components/ui/ProfileModal';
 import { ChatBox } from '@/components/ui/ChatBox';
 import { VictoryModal } from '@/components/ui/VictoryModal';
 import { TurnStatusBanner } from '@/components/ui/TurnStatusBanner';
+import { LeaderboardModal } from '@/components/ui/LeaderboardModal';
 import {
   Loader2,
-  Wifi,
-  WifiOff,
   Menu,
-  Dices,
+  BookOpen,
+  BarChart3,
   HelpCircle,
   Settings,
 } from 'lucide-react';
@@ -46,15 +46,31 @@ export default function GameRoomPage() {
   const [isDevCardsOpen, setIsDevCardsOpen] = useState(false);
   const [isRulebookOpen, setIsRulebookOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
   if (!isProfileLoaded || !gameState) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 gap-4 font-catan">
-        <Loader2 className="w-10 h-10 text-amber-400 animate-spin" />
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-catan-gold-trim">Đang kết nối phòng {roomId}...</h2>
-          <p className="text-xs text-slate-400 mt-1 font-sans">Đang thiết lập mạng P2P WebRTC serverless</p>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-slate-100 gap-4 font-catan p-4">
+        {errorMessage ? (
+          <div className="text-center max-w-md bg-slate-900/90 border border-red-500/40 rounded-xl p-6 shadow-2xl">
+            <h2 className="text-xl font-bold text-red-400 mb-2">Connection Failed</h2>
+            <p className="text-xs text-slate-300 font-sans mb-4">{errorMessage}</p>
+            <button
+              onClick={() => router.push('/')}
+              className="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-sans text-sm font-semibold rounded-lg transition-colors cursor-pointer shadow-lg"
+            >
+              Back to Home
+            </button>
+          </div>
+        ) : (
+          <>
+            <Loader2 className="w-10 h-10 text-amber-400 animate-spin" />
+            <div className="text-center">
+              <h2 className="text-xl font-bold text-catan-gold-trim">Connecting to room {roomId}...</h2>
+              <p className="text-xs text-slate-400 mt-1 font-sans">Establishing serverless P2P WebRTC network</p>
+            </div>
+          </>
+        )}
       </div>
     );
   }
@@ -141,23 +157,9 @@ export default function GameRoomPage() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden select-none font-catan">
-      
-      {/* Realistic Deep Blue Ocean Water Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <Image
-          src="/assets/bg_ocean.jpg"
-          alt="Ocean Background"
-          fill
-          className="object-cover object-center scale-105"
-          priority
-        />
-        {/* Soft Ambient Depth Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 pointer-events-none" />
-      </div>
-
-      {/* 1. FULLSCREEN 2D BOARD CANVAS (100% width & height with Pan & Zoom) */}
-      <div className="absolute inset-0 w-full h-full z-10">
+    <div className="ingame-shell relative min-h-screen w-screen overflow-hidden select-none font-catan">
+      {/* 1. CENTRAL BOARD STAGE */}
+      <div className="absolute inset-x-0 bottom-24 top-16 z-10 sm:inset-x-[6%] lg:inset-x-[14%] lg:bottom-22 lg:top-14">
         <Board2D
           gameState={gameState}
           currentUserId={profile.id}
@@ -168,68 +170,91 @@ export default function GameRoomPage() {
         />
       </div>
 
-      {/* 2. FLOATING TRANSPARENT TOP HEADER */}
-      <header className="absolute top-0 inset-x-0 z-30 p-3 sm:p-4 flex items-center justify-between pointer-events-none">
-        {/* Top Left: Hamburger + CATAN Logo Box */}
-        <div className="flex items-center gap-4 px-5 py-3 sm:px-6 sm:py-3.5 rounded-3xl bg-black/85 border-3 border-catan-gold-trim shadow-[0_15px_35px_rgba(0,0,0,0.7)] backdrop-blur-xl pointer-events-auto">
-          <button
-            onClick={() => router.push('/')}
-            className="p-2 rounded-2xl text-catan-gold-trim hover:bg-white/15 hover:scale-115 active:scale-90 transition-all flex items-center justify-center cursor-pointer"
-            title="Menu Chính / Về Trang Chủ"
-          >
-            <Menu className="w-10 h-10 sm:w-12 sm:h-12 stroke-[3]" />
-          </button>
-          <div className="w-0.5 h-8 bg-catan-gold-trim/50" />
-          <span className="font-black text-3xl sm:text-4xl tracking-widest text-catan-gold-trim drop-shadow-md pr-2">
+      {/* 2. TOP NAVIGATION */}
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-30 flex items-center justify-between p-3 sm:p-4">
+        {/* Left: CATAN Brand Logo */}
+        <div className="pointer-events-auto flex items-center gap-2.5 sm:gap-3 select-none">
+          <div className="relative w-9 sm:w-11 aspect-[333/450] shrink-0 drop-shadow-[0_4px_8px_rgba(0,0,0,0.85)]">
+            <Image
+              src="/assets/header/header_banner_c.png"
+              alt="Catan Banner"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <span className="text-2xl sm:text-3xl md:text-4xl font-black tracking-[0.14em] text-transparent bg-clip-text bg-gradient-to-b from-[#fff3b0] via-[#e5b84c] to-[#966318] drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-serif">
             CATAN
           </span>
         </div>
 
-        {/* Top Right: 3 Big Action Badges */}
-        <div className="flex items-center gap-3 sm:gap-4 pointer-events-auto">
-          {/* Dice stats icon */}
-          <button
-            onClick={() => dispatch({ type: 'ROLL_DICE', playerId: profile.id })}
-            className="w-15 h-15 sm:w-17 sm:h-17 rounded-3xl bg-black/85 border-3 border-catan-gold-trim flex items-center justify-center text-catan-gold-trim hover:bg-white/15 hover:scale-110 active:scale-95 transition-all shadow-2xl cursor-pointer"
-            title="Đổ Xúc Xắc"
-          >
-            <Dices className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.5]" />
-          </button>
+        {/* Center: Turn & Phase Status Banner */}
+        <div className="pointer-events-auto absolute left-1/2 top-2 sm:top-3 -translate-x-1/2 z-40 w-[min(92vw,30rem)]">
+          <TurnStatusBanner gameState={gameState} currentUserId={profile.id} />
+        </div>
 
-          {/* Rules / Help icon */}
+        {/* Right: 4 Action Buttons using dedicated assets */}
+        <div className="pointer-events-auto flex items-center gap-2 sm:gap-2.5">
           <button
             onClick={() => setIsRulebookOpen(true)}
-            className="w-15 h-15 sm:w-17 sm:h-17 rounded-3xl bg-black/85 border-3 border-catan-gold-trim flex items-center justify-center text-catan-gold-trim hover:bg-white/15 hover:scale-110 active:scale-95 transition-all shadow-2xl cursor-pointer"
-            title="Tra Cứu Luật Chơi"
+            className="relative h-11 w-11 sm:h-12 sm:w-12 hover:scale-105 active:scale-95 transition-transform duration-150 drop-shadow-md cursor-pointer shrink-0"
+            title="Tra cứu luật chơi (Rulebook)"
           >
-            <HelpCircle className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.5]" />
+            <Image
+              src="/assets/ingame/ingame_action_rulebook_button.png"
+              alt="Rulebook"
+              fill
+              className="object-contain"
+            />
           </button>
-
-          {/* Settings gear icon */}
+          <button
+            onClick={() => setIsLeaderboardOpen(true)}
+            className="relative h-11 w-11 sm:h-12 sm:w-12 hover:scale-105 active:scale-95 transition-transform duration-150 drop-shadow-md cursor-pointer shrink-0"
+            title="Bảng xếp hạng / Thống kê (Leaderboard)"
+          >
+            <Image
+              src="/assets/ingame/ingame_action_stats_button.png"
+              alt="Leaderboard"
+              fill
+              className="object-contain"
+            />
+          </button>
+          <button
+            onClick={() => setIsRulebookOpen(true)}
+            className="relative h-11 w-11 sm:h-12 sm:w-12 hover:scale-105 active:scale-95 transition-transform duration-150 drop-shadow-md cursor-pointer shrink-0"
+            title="Trợ giúp (Help)"
+          >
+            <Image
+              src="/assets/ingame/ingame_action_help_button.png"
+              alt="Help"
+              fill
+              className="object-contain"
+            />
+          </button>
           <button
             onClick={() => setIsProfileOpen(true)}
-            className="w-15 h-15 sm:w-17 sm:h-17 rounded-3xl bg-black/85 border-3 border-catan-gold-trim flex items-center justify-center text-catan-gold-trim hover:bg-white/15 hover:scale-110 active:scale-95 transition-all shadow-2xl cursor-pointer"
-            title="Cài Đặt / Hồ Sơ"
+            className="relative h-11 w-11 sm:h-12 sm:w-12 hover:scale-105 active:scale-95 transition-transform duration-150 drop-shadow-md cursor-pointer shrink-0"
+            title="Cài đặt / Hồ sơ (Settings)"
           >
-            <Settings className="w-8 h-8 sm:w-9 sm:h-9 stroke-[2.5]" />
+            <Image
+              src="/assets/ingame/ingame_action_settings_button.png"
+              alt="Settings"
+              fill
+              className="object-contain"
+            />
           </button>
         </div>
       </header>
 
-      {/* 2.5. Persistent turn context: keeps the next action visible without opening a modal */}
-      <div className="absolute left-1/2 top-[4.75rem] z-30 w-[min(92vw,34rem)] -translate-x-1/2 sm:top-[5.25rem]">
-        <TurnStatusBanner gameState={gameState} currentUserId={profile.id} />
-      </div>
-
-      {/* 3. FLOATING LEFT COLUMN: Players List (Middle) & Chat (Bottom-Left) */}
-      <div className="absolute left-3 sm:left-4 top-16 bottom-3 sm:bottom-4 w-64 sm:w-72 md:w-80 flex flex-col justify-between pointer-events-none z-20">
+      {/* 3. LEFT COLUMN: players + chat */}
+      <div className="pointer-events-none absolute bottom-3 left-3 top-20 z-30 flex w-[min(21rem,calc(100vw-1.5rem))] flex-col justify-between sm:bottom-4 sm:left-4 sm:w-80 md:w-[21.5rem] lg:w-[22.5rem]">
         {/* Middle: 4 Players Pods (Vertically Centered on Left) */}
-        <div className="my-auto py-1 pointer-events-auto">
+        <div className="pointer-events-auto my-auto py-1">
           <PlayerDashboard gameState={gameState} currentUserId={profile.id} />
         </div>
 
         {/* Bottom: Activity Log & Chat Box (Anchored at Bottom-Left) */}
-        <div className="mt-auto pointer-events-auto">
+        <div className="pointer-events-auto mt-auto">
           <ChatBox
             gameState={gameState}
             currentUserId={profile.id}
@@ -238,9 +263,9 @@ export default function GameRoomPage() {
         </div>
       </div>
 
-      {/* 4. FLOATING RIGHT COLUMN: Actions, Resources & Dice Bowl */}
-      <div className="absolute right-3 sm:right-4 top-16 bottom-3 sm:bottom-4 w-64 sm:w-72 md:w-80 flex flex-col justify-between pointer-events-none z-20">
-        <div className="w-full h-full flex flex-col justify-between pointer-events-auto">
+      {/* 4. RIGHT COLUMN: action stack + dice */}
+      <div className="pointer-events-none absolute bottom-3 right-3 top-20 z-30 flex w-[min(19rem,calc(100vw-1.5rem))] flex-col justify-between sm:bottom-4 sm:right-4 sm:w-72 md:w-80">
+        <div className="pointer-events-auto flex h-full w-full flex-col justify-between">
           <ActionPanel
             gameState={gameState}
             currentUserId={profile.id}
@@ -256,8 +281,8 @@ export default function GameRoomPage() {
         </div>
       </div>
 
-      {/* 5. FLOATING BOTTOM CENTER: Player's Resource Cards Hand */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 pointer-events-auto w-full max-w-4xl flex justify-center px-4">
+      {/* 5. BOTTOM CENTER: resource hand */}
+      <div className="pointer-events-auto absolute bottom-1 left-1/2 z-40 flex w-[min(58vw,58rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 justify-center px-1 sm:bottom-2">
         <PlayerHand
           gameState={gameState}
           currentUserId={profile.id}
@@ -315,6 +340,8 @@ export default function GameRoomPage() {
       />
 
       <RulebookModal isOpen={isRulebookOpen} onClose={() => setIsRulebookOpen(false)} />
+
+      <LeaderboardModal isOpen={isLeaderboardOpen} onClose={() => setIsLeaderboardOpen(false)} />
 
       <ProfileModal
         isOpen={isProfileOpen}

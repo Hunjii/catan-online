@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none">
+  <!-- Outer Rounded Square Button Frame -->
+  <rect x="2" y="2" width="44" height="44" rx="10" fill="#1b120a" stroke="#d4a359" stroke-width="1.8" stroke-opacity="0.9" />
+  <rect x="4.5" y="4.5" width="39" height="39" rx="8" fill="#26170c" stroke="#d4a359" stroke-width="1" stroke-opacity="0.35" />
+
+  <!-- Calendar Binder Rings -->
+  <rect x="14" y="10" width="3" height="6" rx="1.5" fill="#fcd34d" stroke="#b4832c" stroke-width="0.8" />
+  <rect x="31" y="10" width="3" height="6" rx="1.5" fill="#fcd34d" stroke="#b4832c" stroke-width="0.8" />
+
+  <!-- Calendar Body -->
+  <rect x="11" y="14" width="26" height="24" rx="4" fill="#130b05" stroke="#fcd34d" stroke-width="1.8" stroke-opacity="0.95" />
+  <line x1="11" y1="21" x2="37" y2="21" stroke="#fcd34d" stroke-width="1.5" stroke-opacity="0.95" />
+
+  <!-- Calendar Details / Pulse Wave Lines -->
+  <path d="M15 28 H20 L22 25 L25 32 L27 28 H33" stroke="#fcd34d" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

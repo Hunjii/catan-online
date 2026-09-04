@@ -33,6 +33,128 @@ body {
     box-shadow: inset 0 1px 0 rgba(255, 231, 171, 0.1), 0 12px 30px rgba(0, 0, 0, 0.32);
   }
 
+  /* Ingame visual system: textured wood, carved gold frames and readable glassy HUD. */
+  .ingame-shell {
+    isolation: isolate;
+    background-color: #160b05;
+    background-image: url('/assets/ingame/ingame_wood_background_2k.jpg');
+    background-position: center;
+    background-size: cover;
+  }
+
+  .ingame-shell::after {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    content: '';
+    background:
+      radial-gradient(circle at 50% 45%, rgba(116, 67, 23, 0.12), transparent 36%),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.24), rgba(0, 0, 0, 0.48));
+  }
+
+  .ingame-panel {
+    position: relative;
+    isolation: isolate;
+    border: 0;
+    background-color: rgba(34, 16, 6, 0.94);
+    background-image:
+      linear-gradient(135deg, rgba(9, 5, 2, 0.24), rgba(63, 28, 8, 0.22)),
+      url('/assets/ingame/ingame_panel_frame.png');
+    background-position: center;
+    background-size: 100% 100%;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.55), 0 0 26px rgba(214, 145, 32, 0.08);
+  }
+
+  .ingame-panel::after {
+    position: absolute;
+    inset: 8px;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    content: '';
+    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.34);
+  }
+
+  .ingame-icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(194, 142, 39, 0.85);
+    border-radius: 0.95rem;
+    color: #f6cf72;
+    background: linear-gradient(145deg, rgba(53, 28, 10, 0.96), rgba(10, 6, 3, 0.94));
+    box-shadow: inset 0 1px 0 rgba(255, 229, 159, 0.14), 0 8px 16px rgba(0, 0, 0, 0.42);
+    transition: transform 180ms ease, filter 180ms ease, border-color 180ms ease;
+  }
+
+  .ingame-icon-button:hover {
+    border-color: #f5cf6b;
+    filter: brightness(1.2) drop-shadow(0 0 9px rgba(245, 190, 61, 0.3));
+    transform: translateY(-2px);
+  }
+
+  .ingame-icon-button:active {
+    transform: translateY(0) scale(0.96);
+  }
+
+  .ingame-player-row {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(171, 115, 27, 0.5);
+    border-radius: 0.95rem;
+    background: linear-gradient(90deg, rgba(10, 6, 3, 0.75), rgba(46, 23, 7, 0.66), rgba(10, 6, 3, 0.78));
+    box-shadow: inset 0 1px 0 rgba(255, 215, 112, 0.07), 0 6px 12px rgba(0, 0, 0, 0.25);
+    transition: transform 180ms ease, border-color 180ms ease, opacity 180ms ease;
+  }
+
+  .ingame-player-row:hover {
+    border-color: rgba(236, 185, 65, 0.85);
+    transform: translateX(2px);
+  }
+
+  .ingame-action-row {
+    border-top: 1px solid rgba(190, 137, 38, 0.35);
+    background: linear-gradient(90deg, rgba(13, 8, 3, 0.74), rgba(69, 34, 8, 0.42), rgba(13, 8, 3, 0.74));
+    transition: background 180ms ease, filter 180ms ease;
+  }
+
+  .ingame-action-row:hover:not(:disabled) {
+    background: linear-gradient(90deg, rgba(93, 49, 10, 0.82), rgba(133, 78, 13, 0.58), rgba(93, 49, 10, 0.82));
+    filter: brightness(1.12);
+  }
+
+  .ingame-board-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .ingame-phase-banner {
+    position: relative;
+    min-height: 4.9rem;
+    background: url('/assets/ingame/ingame_phase_banner.png') center / 100% 100% no-repeat;
+    filter: drop-shadow(0 12px 15px rgba(0, 0, 0, 0.5));
+  }
+
+  .ingame-card-count {
+    border: 1px solid rgba(255, 227, 150, 0.75);
+    border-radius: 999px;
+    color: #2b1505;
+    background: linear-gradient(180deg, #fff2c8, #c99635);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  }
+
+  .ingame-scrollbar::-webkit-scrollbar-track {
+    background: rgba(26, 12, 4, 0.5);
+  }
+
+  .ingame-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(211, 156, 49, 0.48);
+  }
+
   .home-nav-dock {
     position: relative;
     isolation: isolate;

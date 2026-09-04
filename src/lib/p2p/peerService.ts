@@ -105,7 +105,7 @@ export class P2PManager {
         return;
       }
       console.error('Host Peer error:', err);
-      this.callbacks.onError(`Lỗi máy chủ phòng: ${err?.type || err}`);
+      this.callbacks.onError(`Room host error: ${err?.type || err}`);
     });
   }
 
@@ -149,7 +149,7 @@ export class P2PManager {
 
       conn.on('close', () => {
         this.callbacks.onStatusChange('disconnected', false);
-        this.callbacks.onError('Mất kết nối với Chủ phòng.');
+        this.callbacks.onError('Lost connection to host.');
       });
 
       conn.on('error', (err: any) => {
@@ -166,7 +166,7 @@ export class P2PManager {
         return;
       }
       console.error('Client peer error:', err);
-      this.callbacks.onError(`Lỗi kết nối client: ${err?.type || err}`);
+      this.callbacks.onError(`Client connection error: ${err?.type || err}`);
     });
   }
 
