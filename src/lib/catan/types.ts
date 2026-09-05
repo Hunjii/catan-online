@@ -205,6 +205,9 @@ export interface GameState {
   largestArmyPlayerId: string | null;
   largestArmyCount: number;
 
+  // Robber Steal Event Notification
+  lastStealEvent: StealEvent | null;
+
   // Trading
   currentTradeOffer: TradeOffer | null;
 
@@ -214,4 +217,12 @@ export interface GameState {
 
   // Winner
   winnerPlayerId: string | null;
+}
+
+export interface StealEvent {
+  id: string;
+  thiefId: string;
+  victimId: string;
+  resource: ResourceType;
+  timestamp: number;
 }

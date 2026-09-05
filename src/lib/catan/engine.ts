@@ -85,6 +85,7 @@ export function createInitialGameState(roomId: string): GameState {
     longestRoadLength: 0,
     largestArmyPlayerId: null,
     largestArmyCount: 0,
+    lastStealEvent: null,
     currentTradeOffer: null,
     logs: [
       {
@@ -640,7 +641,16 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         const stolenRes = availableCards[Math.floor(Math.random() * availableCards.length)];
         victim.resources[stolenRes]--;
         thief.resources[stolenRes]++;
-        addLog(nextState, `${thief.name} đã cướp 1 thẻ tài nguyên từ ${victim.name}.`, 'robber', thief.id);
+        nextState.lastStealEvent = {
+          id: `steal_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+          thiefId: thief.id,
+          victimId: victim.id,
+          resource: stolenRes,
+          timestamp: Date.now(),
+        };
+        addLog(nextState, `🥷 ${thief.name} đã cướp 1 thẻ tài nguyên (${stolenRes}) từ ${victim.name}.`, 'robber', thief.id);
+      } else {
+        addLog(nextState, `🥷 ${thief.name} cố gắng cướp nhưng ${victim.name} không còn tài nguyên nào!`, 'robber', thief.id);
       }
 
       nextState.stealingEligiblePlayerIds = [];
@@ -910,6 +920,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       nextState.roadBuildingRoadsRemaining = 0;
       nextState.currentTradeOffer = null;
       nextState.lastDiceRoll = null;
+      nextState.lastStealEvent = null;
 
       // Advance to next player
       nextState.activePlayerIndex = (nextState.activePlayerIndex + 1) % nextState.playerOrder.length;

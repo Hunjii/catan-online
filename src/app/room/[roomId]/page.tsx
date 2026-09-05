@@ -21,6 +21,7 @@ import { VictoryModal } from '@/components/ui/VictoryModal';
 import { LeaderboardModal } from '@/components/ui/LeaderboardModal';
 import { DiceRollOverlay } from '@/components/ui/DiceRollOverlay';
 import { TradeConfirmModal } from '@/components/ui/TradeConfirmModal';
+import { StealNotificationOverlay } from '@/components/ui/StealNotificationOverlay';
 import {
   Loader2,
   Menu,
@@ -373,6 +374,11 @@ export default function GameRoomPage() {
         onAcceptTradeOffer={(offerId) => {
           dispatch({ type: 'ACCEPT_TRADE_OFFER', playerId: profile.id, offerId });
         }}
+      />
+
+      <StealNotificationOverlay
+        gameState={gameState}
+        currentUserId={profile.id}
       />
 
       <VictoryModal
