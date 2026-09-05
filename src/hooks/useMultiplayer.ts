@@ -23,7 +23,7 @@ export function useMultiplayer(roomId: string, profile: PlayerProfile, isProfile
         // Trigger sounds based on state transitions
         const prevState = lastStateRef.current;
         if (prevState) {
-          if (state.lastDiceRoll && state.lastDiceRoll !== prevState.lastDiceRoll) {
+          if (state.lastDiceRoll && state.phase !== 'turn_roll_dice' && state.lastDiceRoll !== prevState.lastDiceRoll) {
             soundEngine.playDiceRoll();
           }
           if (state.winnerPlayerId && !prevState.winnerPlayerId) {
@@ -62,6 +62,8 @@ export function useMultiplayer(roomId: string, profile: PlayerProfile, isProfile
         soundEngine.playUpgradeCity();
       } else if (action.type === 'BUY_DEV_CARD' || action.type === 'EXECUTE_BANK_TRADE' || action.type === 'ACCEPT_TRADE_OFFER') {
         soundEngine.playResourceChime();
+      } else if (action.type === 'ROLL_DICE') {
+        soundEngine.playDiceRoll();
       } else {
         soundEngine.playClick();
       }

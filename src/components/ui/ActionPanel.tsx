@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { GameState, BUILDING_COSTS } from '@/lib/catan/types';
 import { hasEnoughResources } from '@/lib/catan/trade';
 import { ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { Dice3D } from './Dice3D';
 
 interface ActionPanelProps {
   gameState: GameState;
@@ -131,7 +132,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                           Road
                         </span>
                         <span className="text-[10px] text-stone-400 font-vietnam">
-                          còn {myPlayer.roadsLeft}
+                          {myPlayer.roadsLeft} left
                         </span>
                       </div>
 
@@ -195,7 +196,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                           Settlement
                         </span>
                         <span className="text-[10px] text-stone-400 font-vietnam">
-                          còn {myPlayer.settlementsLeft}
+                          {myPlayer.settlementsLeft} left
                         </span>
                       </div>
 
@@ -216,20 +217,20 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 
                         {/* Cost: 1 Brick + 1 Timber + 1 Wheat + 1 Sheep */}
                         <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#f2e6cb]">
-                          <div className="flex items-center gap-0.5" title="1 Gạch (Brick)">
-                            <Image src="/assets/icons/brick.png" alt="Gạch" width={13} height={13} className="object-contain" />
+                          <div className="flex items-center gap-0.5" title="1 Brick">
+                            <Image src="/assets/icons/brick.png" alt="Brick" width={13} height={13} className="object-contain" />
                             <span>1</span>
                           </div>
-                          <div className="flex items-center gap-0.5" title="1 Gỗ (Timber)">
-                            <Image src="/assets/icons/timber.png" alt="Gỗ" width={13} height={13} className="object-contain" />
+                          <div className="flex items-center gap-0.5" title="1 Timber">
+                            <Image src="/assets/icons/timber.png" alt="Timber" width={13} height={13} className="object-contain" />
                             <span>1</span>
                           </div>
-                          <div className="flex items-center gap-0.5" title="1 Lúa (Wheat)">
-                            <Image src="/assets/icons/wheat.png" alt="Lúa" width={13} height={13} className="object-contain" />
+                          <div className="flex items-center gap-0.5" title="1 Wheat">
+                            <Image src="/assets/icons/wheat.png" alt="Wheat" width={13} height={13} className="object-contain" />
                             <span>1</span>
                           </div>
-                          <div className="flex items-center gap-0.5" title="1 Cừu (Sheep)">
-                            <Image src="/assets/icons/sheep.png" alt="Cừu" width={13} height={13} className="object-contain" />
+                          <div className="flex items-center gap-0.5" title="1 Sheep">
+                            <Image src="/assets/icons/sheep.png" alt="Sheep" width={13} height={13} className="object-contain" />
                             <span>1</span>
                           </div>
                         </div>
@@ -267,7 +268,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                           City
                         </span>
                         <span className="text-[10px] text-stone-400 font-vietnam">
-                          còn {myPlayer.citiesLeft}
+                          {myPlayer.citiesLeft} left
                         </span>
                       </div>
 
@@ -288,12 +289,12 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 
                         {/* Cost: 2 Wheat + 3 Ore */}
                         <div className="flex items-center gap-2 text-[11px] font-bold text-[#f2e6cb]">
-                          <div className="flex items-center gap-0.5" title="2 Lúa (Wheat)">
-                            <Image src="/assets/icons/wheat.png" alt="Lúa" width={13} height={13} className="object-contain" />
+                          <div className="flex items-center gap-0.5" title="2 Wheat">
+                            <Image src="/assets/icons/wheat.png" alt="Wheat" width={13} height={13} className="object-contain" />
                             <span>2</span>
                           </div>
-                          <div className="flex items-center gap-0.5" title="3 Quặng (Ore)">
-                            <Image src="/assets/icons/ore.png" alt="Quặng" width={13} height={13} className="object-contain" />
+                          <div className="flex items-center gap-0.5" title="3 Ore">
+                            <Image src="/assets/icons/ore.png" alt="Ore" width={13} height={13} className="object-contain" />
                             <span>3</span>
                           </div>
                         </div>
@@ -327,7 +328,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
                 </span>
               </div>
               <span className="font-vietnam text-[10px] sm:text-[11px] font-medium text-stone-400">
-                Giao thương
+                Trade
               </span>
             </button>
 
@@ -353,16 +354,16 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
 
               {/* Dev Card Cost: 1 Sheep + 1 Wheat + 1 Ore */}
               <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#f2e6cb]">
-                <div className="flex items-center gap-0.5" title="1 Cừu">
-                  <Image src="/assets/icons/sheep.png" alt="Cừu" width={12} height={12} className="object-contain" />
+                <div className="flex items-center gap-0.5" title="1 Sheep">
+                  <Image src="/assets/icons/sheep.png" alt="Sheep" width={12} height={12} className="object-contain" />
                   <span>1</span>
                 </div>
-                <div className="flex items-center gap-0.5" title="1 Lúa">
-                  <Image src="/assets/icons/wheat.png" alt="Lúa" width={12} height={12} className="object-contain" />
+                <div className="flex items-center gap-0.5" title="1 Wheat">
+                  <Image src="/assets/icons/wheat.png" alt="Wheat" width={12} height={12} className="object-contain" />
                   <span>1</span>
                 </div>
-                <div className="flex items-center gap-0.5" title="1 Quặng">
-                  <Image src="/assets/icons/ore.png" alt="Quặng" width={12} height={12} className="object-contain" />
+                <div className="flex items-center gap-0.5" title="1 Ore">
+                  <Image src="/assets/icons/ore.png" alt="Ore" width={12} height={12} className="object-contain" />
                   <span>1</span>
                 </div>
               </div>
@@ -379,26 +380,43 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
             ROLL DICE
           </span>
           <span className="font-vietnam text-[10px] font-bold text-amber-200/60 uppercase">
-            {isMyTurn ? 'Lượt của bạn' : 'Đang chờ'}
+            {isMyTurn ? 'Your Turn' : 'Waiting'}
           </span>
         </div>
 
-        {/* 3D Dice Button */}
+        {/* 3D Dice Display & Roll Button */}
         <button
-          onClick={() => isMyTurn && isRollDicePhase && onRollDice()}
+          onClick={() => {
+            if (!isMyTurn || !isRollDicePhase) return;
+            onRollDice();
+          }}
           disabled={!isMyTurn || !isRollDicePhase}
-          className={`relative h-20 w-full max-w-[13rem] sm:h-24 overflow-hidden rounded-xl transition hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer ${
-            isMyTurn && isRollDicePhase ? 'animate-pulse drop-shadow-[0_0_15px_rgba(248,194,75,0.6)]' : ''
+          className={`group relative flex h-20 w-full max-w-[13.5rem] sm:h-22 items-center justify-center gap-5 overflow-hidden rounded-2xl border border-[#9b6f28]/70 bg-gradient-to-b from-[#1c1107] via-[#24160b] to-[#140b04] p-2 transition-all duration-200 hover:border-amber-400/90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer ${
+            isMyTurn && isRollDicePhase
+              ? 'animate-pulse drop-shadow-[0_0_15px_rgba(248,194,75,0.6)] ring-1 ring-amber-400/50'
+              : 'shadow-inner'
           }`}
-          title="Bấm để đổ xúc xắc"
+          title={isMyTurn && isRollDicePhase ? 'Click to roll dice' : 'Waiting for turn'}
         >
-          <Image
-            src="/assets/ingame/ingame_dice_pair.png"
-            alt="Xúc xắc"
-            fill
-            className="object-contain"
-            sizes="220px"
-            priority
+          {/* Subtle wooden tray texture background */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(146,64,14,0.18),transparent_70%)] pointer-events-none" />
+
+          {/* Die 1: Classic Ivory */}
+          <Dice3D
+            value={gameState.lastDiceRoll ? gameState.lastDiceRoll[0] : 3}
+            isRolling={false}
+            size={46}
+            color="ivory"
+            dieIndex={0}
+          />
+
+          {/* Die 2: Milky White with Golden Sheen */}
+          <Dice3D
+            value={gameState.lastDiceRoll ? gameState.lastDiceRoll[1] : 4}
+            isRolling={false}
+            size={46}
+            color="ivory"
+            dieIndex={1}
           />
         </button>
 
@@ -410,10 +428,10 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
         {/* Dice Status Hint */}
         <p className="text-center font-vietnam text-[11px] sm:text-xs font-medium text-amber-100/70">
           {diceTotal
-            ? `Tổng điểm xúc xắc: ${diceTotal}`
+            ? `Dice Total: ${diceTotal}`
             : isMyTurn && isRollDicePhase
-            ? 'Đổ xúc xắc để thu thập tài nguyên'
-            : 'Chờ người chơi đổ xúc xắc'}
+            ? 'Roll the dice to produce resources'
+            : 'Waiting for player to roll'}
         </p>
 
         {/* End Turn Button */}
@@ -422,7 +440,7 @@ export const ActionPanel: React.FC<ActionPanelProps> = ({
           disabled={!isMyTurn || !isTurnActionPhase}
           className="w-full mt-1 rounded-xl border border-amber-300/70 bg-gradient-to-r from-[#d97706] via-[#f5b829] to-[#d97706] py-2.5 font-sans text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-[#241302] shadow-[0_4px_12px_rgba(0,0,0,0.6)] transition hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
         >
-          {isMyTurn && isTurnActionPhase ? 'KẾT THÚC LƯỢT' : 'CHỜ ĐẾN LƯỢT'}
+          {isMyTurn && isTurnActionPhase ? 'END TURN' : 'WAITING FOR TURN'}
         </button>
       </div>
     </div>

@@ -19,6 +19,7 @@ import { ChatBox } from '@/components/ui/ChatBox';
 import { VictoryModal } from '@/components/ui/VictoryModal';
 import { TurnStatusBanner } from '@/components/ui/TurnStatusBanner';
 import { LeaderboardModal } from '@/components/ui/LeaderboardModal';
+import { DiceRollOverlay } from '@/components/ui/DiceRollOverlay';
 import {
   Loader2,
   Menu,
@@ -339,6 +340,7 @@ export default function GameRoomPage() {
         }}
       />
 
+
       <RulebookModal isOpen={isRulebookOpen} onClose={() => setIsRulebookOpen(false)} />
 
       <LeaderboardModal isOpen={isLeaderboardOpen} onClose={() => setIsLeaderboardOpen(false)} />
@@ -357,6 +359,11 @@ export default function GameRoomPage() {
             pieceStyle: updated.pieceStyle || profile.pieceStyle,
           });
         }}
+      />
+
+      <DiceRollOverlay
+        gameState={gameState}
+        currentUserId={profile.id}
       />
 
       <VictoryModal

@@ -909,6 +909,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       nextState.hasPlayedDevCardThisTurn = false;
       nextState.roadBuildingRoadsRemaining = 0;
       nextState.currentTradeOffer = null;
+      nextState.lastDiceRoll = null;
 
       // Advance to next player
       nextState.activePlayerIndex = (nextState.activePlayerIndex + 1) % nextState.playerOrder.length;
