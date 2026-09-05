@@ -18,19 +18,6 @@ const RESOURCE_CARD_DATA: Record<ResourceType, { name: string; cardImg: string; 
   ore: { name: 'Ore', cardImg: '/assets/card_ore_user.png', icon: '/assets/icons/ore.png' },
 };
 
-const AVATAR_FALLBACKS = ['alexander', 'elara', 'magnus', 'lyra'] as const;
-
-function getAvatarSrc(avatarSeed: string | undefined, slotIndex: number) {
-  if (!avatarSeed) {
-    return `/assets/avatars/${AVATAR_FALLBACKS[slotIndex % AVATAR_FALLBACKS.length]}.png`;
-  }
-  const seed = avatarSeed.toLowerCase();
-  const avatar =
-    AVATAR_FALLBACKS.find((candidate) => seed.includes(candidate)) ??
-    AVATAR_FALLBACKS[slotIndex % AVATAR_FALLBACKS.length];
-  return `/assets/avatars/${avatar}.png`;
-}
-
 export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> = ({
   gameState,
   currentUserId,
@@ -42,14 +29,9 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
     isVictim: boolean;
     thiefName: string;
     victimName: string;
-    thiefAvatar?: string;
-    victimAvatar?: string;
-    thiefSlot: number;
-    victimSlot: number;
   } | null>(null);
 
   const prevEventIdRef = useRef<string | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const lastEvent = gameState.lastStealEvent;
 
@@ -59,15 +41,11 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
     if (prevEventIdRef.current !== lastEvent.id) {
       prevEventIdRef.current = lastEvent.id;
 
-      if (timerRef.current) clearTimeout(timerRef.current);
-
       const isThief = lastEvent.thiefId === currentUserId;
       const isVictim = lastEvent.victimId === currentUserId;
 
       const thief = gameState.players.find((p) => p.id === lastEvent.thiefId);
       const victim = gameState.players.find((p) => p.id === lastEvent.victimId);
-      const thiefSlot = gameState.playerOrder.findIndex((id) => id === lastEvent.thiefId);
-      const victimSlot = gameState.playerOrder.findIndex((id) => id === lastEvent.victimId);
 
       setEventData({
         event: lastEvent,
@@ -75,10 +53,6 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
         isVictim,
         thiefName: thief ? thief.name : 'Thief',
         victimName: victim ? victim.name : 'Victim',
-        thiefAvatar: thief?.avatarSeed,
-        victimAvatar: victim?.avatarSeed,
-        thiefSlot: thiefSlot >= 0 ? thiefSlot : 0,
-        victimSlot: victimSlot >= 0 ? victimSlot : 0,
       });
 
       setVisible(true);
@@ -88,23 +62,10 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
       } else if (isVictim) {
         soundEngine.playRobber();
       }
-
-      // Auto dismiss after 5.5 seconds if not closed
-      timerRef.current = setTimeout(() => {
-        setVisible(false);
-      }, 5500);
     }
-  }, [lastEvent, currentUserId, gameState.players, gameState.playerOrder]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
+  }, [lastEvent, currentUserId, gameState.players]);
 
   const handleClose = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
     soundEngine.playClick();
     setVisible(false);
   };
@@ -120,14 +81,8 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
   // Case 1: Current player is the VICTIM (Resources Lost)
   if (eventData.isVictim) {
     return (
-      <div
-        onClick={handleClose}
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in select-none font-catan cursor-pointer"
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="relative w-[min(94vw,680px)] aspect-[1505/1044] max-h-[90vh] drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-fade-in cursor-default"
-        >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in select-none font-catan">
+        <div className="relative w-[min(94vw,680px)] aspect-[1505/1044] max-h-[90vh] drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-fade-in">
           {/* Authentic Robber Lost Modal Frame Asset */}
           <Image
             src="/assets/ingame/robber/ingame_resources_lost_modal_frame_en.png"
@@ -137,21 +92,11 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
             priority
           />
 
-          {/* Thief Avatar & Name Badge (Positioned before baked text "moved the robber and stole resources from you.") */}
-          <div className="absolute top-[24.5%] left-[28%] sm:left-[30%] -translate-y-1/2 flex items-center gap-1.5 z-20">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#2a170a]/90 border border-[#d4af37]/80 shadow-md">
-              <div className="relative w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full overflow-hidden border border-amber-400 shrink-0">
-                <Image
-                  src={getAvatarSrc(eventData.thiefAvatar, eventData.thiefSlot)}
-                  alt={eventData.thiefName}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <span className="font-serif font-black text-[11px] sm:text-xs md:text-sm text-[#fde68a] max-w-[90px] sm:max-w-[130px] truncate drop-shadow-xs">
-                {eventData.thiefName}
-              </span>
-            </div>
+          {/* Complete Information Text in Top Parchment Area */}
+          <div className="absolute top-[18%] left-[27%] right-[8%] h-[16%] flex items-center justify-center text-center z-20 px-2">
+            <p className="font-cinzel text-xs sm:text-sm md:text-base text-[#2a1306] font-bold leading-snug drop-shadow-xs">
+              <span className="font-black text-[#872e04] text-sm sm:text-base md:text-lg">{eventData.thiefName}</span> moved the Robber and stole a resource card from you!
+            </p>
           </div>
 
           {/* Lost Resource Card in Pre-Carved Slot */}
@@ -196,14 +141,8 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
   // Case 2: Current player is the THIEF (Resources Stolen)
   if (eventData.isThief) {
     return (
-      <div
-        onClick={handleClose}
-        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in select-none font-catan cursor-pointer"
-      >
-        <div
-          onClick={(e) => e.stopPropagation()}
-          className="relative w-[min(94vw,680px)] aspect-[1467/1013] max-h-[90vh] drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-fade-in cursor-default"
-        >
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in select-none font-catan">
+        <div className="relative w-[min(94vw,680px)] aspect-[1467/1013] max-h-[90vh] drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-fade-in">
           {/* Authentic Robber Stolen Modal Frame Asset */}
           <Image
             src="/assets/ingame/robber/ingame_resources_stolen_modal_frame_en.png"
@@ -213,21 +152,11 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
             priority
           />
 
-          {/* Victim Avatar & Name Badge (Positioned after baked text "You moved the robber and stole resources from ") */}
-          <div className="absolute top-[20.5%] right-[5%] sm:right-[7%] -translate-y-1/2 flex items-center gap-1.5 z-20">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#2a170a]/90 border border-[#d4af37]/80 shadow-md">
-              <div className="relative w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 rounded-full overflow-hidden border border-amber-400 shrink-0">
-                <Image
-                  src={getAvatarSrc(eventData.victimAvatar, eventData.victimSlot)}
-                  alt={eventData.victimName}
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <span className="font-serif font-black text-[11px] sm:text-xs md:text-sm text-[#fde68a] max-w-[90px] sm:max-w-[130px] truncate drop-shadow-xs">
-                {eventData.victimName}
-              </span>
-            </div>
+          {/* Complete Information Text in Top Parchment Area */}
+          <div className="absolute top-[18%] inset-x-[8%] h-[14%] flex items-center justify-center text-center z-20 px-2">
+            <p className="font-cinzel text-xs sm:text-sm md:text-base text-[#2a1306] font-bold leading-snug drop-shadow-xs">
+              You moved the Robber and stole a resource card from <span className="font-black text-[#872e04] text-sm sm:text-base md:text-lg">{eventData.victimName}</span>!
+            </p>
           </div>
 
           {/* Stolen Resource Card in Radiant Sunlight */}
@@ -271,14 +200,8 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
 
   // Case 3: Spectator / Other players observation
   return (
-    <div
-      onClick={handleClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in select-none font-catan cursor-pointer"
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-[min(94vw,680px)] aspect-[1467/1013] max-h-[90vh] drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-fade-in cursor-default"
-      >
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in select-none font-catan">
+      <div className="relative w-[min(94vw,680px)] aspect-[1467/1013] max-h-[90vh] drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-fade-in">
         {/* Authentic Robber Stolen Modal Frame Asset */}
         <Image
           src="/assets/ingame/robber/ingame_resources_stolen_modal_frame_en.png"
@@ -288,39 +211,11 @@ export const StealNotificationOverlay: React.FC<StealNotificationOverlayProps> =
           priority
         />
 
-        {/* Custom Header Text for Spectators */}
-        <div className="absolute top-[18.5%] inset-x-[8%] flex items-center justify-center gap-2 z-20">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#2a170a]/90 border border-[#d4af37]/80 shadow-md">
-            <div className="relative w-4 h-4 sm:w-5 sm:h-5 rounded-full overflow-hidden border border-amber-400 shrink-0">
-              <Image
-                src={getAvatarSrc(eventData.thiefAvatar, eventData.thiefSlot)}
-                alt={eventData.thiefName}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <span className="font-serif font-black text-xs sm:text-sm text-[#fde68a] truncate">
-              {eventData.thiefName}
-            </span>
-          </div>
-
-          <span className="font-serif font-bold text-xs sm:text-sm md:text-base text-[#2a1306]">
-            stole a resource from
-          </span>
-
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#2a170a]/90 border border-[#d4af37]/80 shadow-md">
-            <div className="relative w-4 h-4 sm:w-5 sm:h-5 rounded-full overflow-hidden border border-amber-400 shrink-0">
-              <Image
-                src={getAvatarSrc(eventData.victimAvatar, eventData.victimSlot)}
-                alt={eventData.victimName}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <span className="font-serif font-black text-xs sm:text-sm text-[#fde68a] truncate">
-              {eventData.victimName}
-            </span>
-          </div>
+        {/* Complete Information Text in Top Parchment Area */}
+        <div className="absolute top-[18%] inset-x-[8%] h-[14%] flex items-center justify-center text-center z-20 px-2">
+          <p className="font-cinzel text-xs sm:text-sm md:text-base text-[#2a1306] font-bold leading-snug drop-shadow-xs">
+            <span className="font-black text-[#872e04] text-sm sm:text-base md:text-lg">{eventData.thiefName}</span> moved the Robber and stole a resource card from <span className="font-black text-[#872e04] text-sm sm:text-base md:text-lg">{eventData.victimName}</span>!
+          </p>
         </div>
 
         {/* Mystery Stolen Card (Card Back) for Spectators */}

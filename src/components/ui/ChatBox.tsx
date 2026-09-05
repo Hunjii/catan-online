@@ -27,11 +27,13 @@ export const ChatBox: React.FC<ChatBoxProps> = ({
   onSendMessage,
 }) => {
   const [inputText, setInputText] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const myPlayer = gameState.players.find((p) => p.id === currentUserId);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   }, [gameState.messages, gameState.logs]);
 
   const handleSend = (e: React.FormEvent) => {
@@ -75,7 +77,10 @@ export const ChatBox: React.FC<ChatBoxProps> = ({
   return (
     <div className="flex h-44 sm:h-48 max-h-[26vh] w-full flex-col justify-between rounded-2xl bg-[#140d07]/92 p-2.5 sm:p-3 border border-[#442c16]/90 shadow-[0_12px_28px_rgba(0,0,0,0.75)] backdrop-blur-md select-none font-catan pointer-events-auto">
       {/* Messages & Logs Feed */}
-      <div className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-1.5 py-1 ingame-scrollbar">
+      <div
+        ref={messagesContainerRef}
+        className="flex flex-1 flex-col gap-1.5 overflow-y-auto px-1.5 py-1 ingame-scrollbar"
+      >
         {combinedEntries.length === 0 ? (
           <div className="my-auto text-center font-vietnam text-xs text-stone-400/70">
             Trận đấu đã bắt đầu! Chúc các bạn chơi vui vẻ.
@@ -101,7 +106,6 @@ export const ChatBox: React.FC<ChatBoxProps> = ({
             </div>
           ))
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Divider */}

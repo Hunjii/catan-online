@@ -98,20 +98,21 @@ export const Board2D: React.FC<Board2DProps> = ({
       if (h.center.z < minZ) minZ = h.center.z;
       if (h.center.z > maxZ) maxZ = h.center.z;
     });
-    // Compact padding hugging the island and harbors closely
-    minX = minX * BASE_SCALE - HEX_RADIUS_PX - 35;
-    maxX = maxX * BASE_SCALE + HEX_RADIUS_PX + 35;
-    minZ = minZ * BASE_SCALE - HEX_RADIUS_PX - 35;
-    maxZ = maxZ * BASE_SCALE + HEX_RADIUS_PX + 35;
+    // Comfortable padding around the island and harbors, scaling down the hex tiles slightly
+    const PADDING_PX = 72;
+    minX = minX * BASE_SCALE - HEX_RADIUS_PX - PADDING_PX;
+    maxX = maxX * BASE_SCALE + HEX_RADIUS_PX + PADDING_PX;
+    minZ = minZ * BASE_SCALE - HEX_RADIUS_PX - PADDING_PX;
+    maxZ = maxZ * BASE_SCALE + HEX_RADIUS_PX + PADDING_PX;
 
     const width = maxX - minX;
     const height = maxZ - minZ;
     const cx = (minX + maxX) / 2;
     const cy = (minZ + maxZ) / 2;
 
-    // Compact frame size hugging the island snugly
-    const frameHeight = height * 1.08;
-    const frameWidth = Math.max(width * 1.12, frameHeight * 1.32);
+    // Frame size hugging the island with natural sea margin
+    const frameHeight = height * 1.10;
+    const frameWidth = Math.max(width * 1.15, frameHeight * 1.34);
 
     return {
       minX,
@@ -457,6 +458,17 @@ export const Board2D: React.FC<Board2DProps> = ({
           <filter id="road-glow" x="-40%" y="-40%" width="180%" height="180%">
             <feDropShadow dx="0" dy="2" stdDeviation="4" floodColor="#fbbf24" floodOpacity="0.9" />
           </filter>
+
+          {/* Robber Active Pulsing Glow & Target Aura */}
+          <filter id="robber-active-glow" x="-80%" y="-80%" width="260%" height="260%">
+            <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#ef4444" floodOpacity="1" />
+            <feDropShadow dx="0" dy="0" stdDeviation="12" floodColor="#f59e0b" floodOpacity="0.85" />
+          </filter>
+
+          <filter id="hex-target-glow" x="-40%" y="-40%" width="180%" height="180%">
+            <feDropShadow dx="0" dy="0" stdDeviation="8" floodColor="#f59e0b" floodOpacity="0.85" />
+            <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#ef4444" floodOpacity="0.6" />
+          </filter>
         </defs>
 
         {/* 0. INTEGRATED OCEAN & BOARD FRAME (Using /assets/ingame/ingame_board_frame.png) */}
@@ -514,7 +526,10 @@ export const Board2D: React.FC<Board2DProps> = ({
             const cx = hex.center.x * BASE_SCALE;
             const cy = hex.center.z * BASE_SCALE;
             const isRobber = hex.id === robberHexId;
-            const isInteractive = gameState.phase === 'turn_robber_move' && !isRobber;
+            const isRobberMovePhase = gameState.phase === 'turn_robber_move';
+            const activePlayerId = gameState.playerOrder[gameState.activePlayerIndex];
+            const isMyTurn = currentUserId === activePlayerId;
+            const isInteractive = isRobberMovePhase && !isRobber && isMyTurn;
 
             let fillPattern = TERRAIN_FALLBACK_COLORS[hex.terrain];
             if (hex.terrain === 'forest') fillPattern = 'url(#pat-forest)';
@@ -536,7 +551,7 @@ export const Board2D: React.FC<Board2DProps> = ({
                 }}
                 className={
                   isInteractive
-                    ? 'cursor-pointer hover:opacity-85 transition-opacity pointer-events-auto'
+                    ? 'cursor-pointer group pointer-events-auto transition-transform'
                     : 'pointer-events-none'
                 }
                 style={{ pointerEvents: isInteractive ? 'auto' : 'none' }}
@@ -557,6 +572,19 @@ export const Board2D: React.FC<Board2DProps> = ({
                   strokeWidth="1.5"
                   className="transition-all duration-300"
                 />
+
+                {/* Pulsing Hex Highlight when in Robber Placement Phase */}
+                {isInteractive && (
+                  <polygon
+                    points={HEX_POINTS}
+                    fill="rgba(245, 158, 11, 0.12)"
+                    stroke="#f59e0b"
+                    strokeWidth="3.5"
+                    strokeDasharray="10 6"
+                    className="animate-pulse"
+                    filter="url(#hex-target-glow)"
+                  />
+                )}
 
                 {/* Number Token */}
                 {hex.numberToken && !isRobber && (
@@ -618,18 +646,107 @@ export const Board2D: React.FC<Board2DProps> = ({
                   </g>
                 )}
 
-                {/* 3D Robber Pawn Piece */}
-                {isRobber && (
-                  <g className="pointer-events-none" filter="url(#piece-shadow)">
+                {/* Ghost Robber Hover Placement Preview on valid target hex */}
+                {isInteractive && (
+                  <g className="opacity-0 group-hover:opacity-90 transition-opacity duration-150 pointer-events-none">
+                    <circle
+                      cx="0"
+                      cy="-5"
+                      r="36"
+                      fill="rgba(239, 68, 68, 0.25)"
+                      stroke="#ef4444"
+                      strokeWidth="2.5"
+                      strokeDasharray="6 3"
+                    />
                     <image
                       href="/assets/ingame/ingame_robber_piece.png"
                       x="-28"
                       y="-45"
                       width="56"
                       height="72"
+                      opacity="0.85"
+                      filter="url(#robber-active-glow)"
                       preserveAspectRatio="xMidYMid meet"
                     />
                   </g>
+                )}
+
+                {/* 3D Robber Pawn Piece (Enhanced when in active placement phase) */}
+                {isRobber && (
+                  isRobberMovePhase && isMyTurn ? (
+                    <g className="pointer-events-none">
+                      {/* 1. Pulsing Red & Amber Beacon Aura */}
+                      <circle
+                        cx="0"
+                        cy="-5"
+                        r="44"
+                        fill="rgba(239, 68, 68, 0.2)"
+                        stroke="#ef4444"
+                        strokeWidth="2.5"
+                        className="animate-ping"
+                      />
+                      <circle
+                        cx="0"
+                        cy="-5"
+                        r="34"
+                        fill="rgba(245, 158, 11, 0.25)"
+                        stroke="#f59e0b"
+                        strokeWidth="3"
+                        strokeDasharray="6 3"
+                      />
+
+                      {/* 2. Floating Animated Robber Piece with gentle bobbing */}
+                      <g className="animate-gentle-bob">
+                        <g filter="url(#robber-active-glow)">
+                          <image
+                            href="/assets/ingame/ingame_robber_piece.png"
+                            x="-30"
+                            y="-48"
+                            width="60"
+                            height="76"
+                            preserveAspectRatio="xMidYMid meet"
+                          />
+                        </g>
+
+                        {/* 3. Floating "MOVE ROBBER" Badge above piece */}
+                        <g transform="translate(0, -58)" filter="url(#token-shadow)">
+                          <rect
+                            x="-40"
+                            y="-12"
+                            width="80"
+                            height="22"
+                            rx="6"
+                            fill="#7f1d1d"
+                            stroke="#facc15"
+                            strokeWidth="1.8"
+                          />
+                          <text
+                            x="0"
+                            y="3.5"
+                            textAnchor="middle"
+                            fontSize="9.5"
+                            fontWeight="900"
+                            fill="#fef08a"
+                            fontFamily="var(--font-cinzel), Georgia, serif"
+                            letterSpacing="0.5"
+                          >
+                            MOVE ROBBER
+                          </text>
+                        </g>
+                      </g>
+                    </g>
+                  ) : (
+                    <g className="pointer-events-none" filter="url(#piece-shadow)">
+                      <image
+                        href="/assets/ingame/ingame_robber_piece.png"
+                        x="-28"
+                        y="-45"
+                        width="56"
+                        height="72"
+                        preserveAspectRatio="xMidYMid meet"
+                      />
+                    </g>
+                  )
                 )}
               </g>
             );

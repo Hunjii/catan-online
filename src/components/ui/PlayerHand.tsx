@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { GameState, ResourceType } from '@/lib/catan/types';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface PlayerHandProps {
   gameState: GameState;
@@ -23,6 +24,8 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
   currentUserId,
   onOpenDevCards,
 }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const myPlayer = gameState.players.find((p) => p.id === currentUserId);
   if (!myPlayer) return null;
 
@@ -39,9 +42,14 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
             key={card.type}
             className={`relative flex-1 max-w-[190px] min-w-[65px] aspect-[284/429] max-h-[26vh] transition-all duration-300 rounded-xl sm:rounded-2xl overflow-visible cursor-pointer group
               ${
+                isCollapsed
+                  ? 'translate-y-[66%] hover:translate-y-0 hover:z-50'
+                  : 'translate-y-0 hover:-translate-y-4 hover:z-20'
+              }
+              ${
                 count > 0
-                  ? 'opacity-100 hover:-translate-y-4 hover:scale-105 hover:drop-shadow-[0_16px_30px_rgba(245,158,11,0.5)] z-20'
-                  : 'opacity-60 hover:opacity-90 hover:-translate-y-2 z-10'
+                  ? 'opacity-100 hover:scale-105 hover:drop-shadow-[0_16px_30px_rgba(245,158,11,0.5)]'
+                  : 'opacity-60 hover:opacity-90 hover:scale-102'
               }
             `}
           >
@@ -75,9 +83,14 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
         onClick={onOpenDevCards}
         className={`relative flex-1 max-w-[190px] min-w-[65px] aspect-[284/429] max-h-[26vh] transition-all duration-300 rounded-xl sm:rounded-2xl overflow-visible cursor-pointer group
           ${
+            isCollapsed
+              ? 'translate-y-[66%] hover:translate-y-0 hover:z-50'
+              : 'translate-y-0 hover:-translate-y-4 hover:z-20'
+          }
+          ${
             devCardCount > 0
-              ? 'opacity-100 hover:-translate-y-4 hover:scale-105 hover:drop-shadow-[0_16px_30px_rgba(168,85,247,0.5)] z-20'
-              : 'opacity-60 hover:opacity-90 hover:-translate-y-2 z-10'
+              ? 'opacity-100 hover:scale-105 hover:drop-shadow-[0_16px_30px_rgba(168,85,247,0.5)]'
+              : 'opacity-60 hover:opacity-90 hover:scale-102'
           }
         `}
         title="Click to view / play Development Cards"
@@ -102,6 +115,21 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
         <div className="absolute -top-9 left-1/2 -translate-x-1/2 px-3 py-1 rounded-lg bg-[#140d07]/95 border border-[#9b6f28] font-cinzel font-bold text-xs sm:text-sm text-[#f5d070] tracking-wider whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-40 shadow-[0_4px_12px_rgba(0,0,0,0.8)] backdrop-blur-sm">
           Development Cards ({devCardCount})
         </div>
+      </div>
+
+      {/* Collapse / Expand Toggle Button on the Right Side of the Deck */}
+      <div className="relative self-end pb-2 sm:pb-3 pl-0.5 sm:pl-1 shrink-0 z-40">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="relative w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-b from-[#3a2010] via-[#241508] to-[#120904] border-2 border-[#d4af37] text-amber-300 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.85),inset_0_1px_2px_rgba(255,225,140,0.3)] hover:scale-110 hover:border-amber-300 active:scale-95 transition-all duration-200 cursor-pointer group"
+          title={isCollapsed ? 'Mở rộng khay tài nguyên (Expand Hand)' : 'Thu gọn khay tài nguyên (Collapse Hand)'}
+        >
+          {isCollapsed ? (
+            <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 group-hover:text-amber-100 transition-colors" />
+          ) : (
+            <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-amber-300 group-hover:text-amber-100 transition-colors" />
+          )}
+        </button>
       </div>
     </div>
   );

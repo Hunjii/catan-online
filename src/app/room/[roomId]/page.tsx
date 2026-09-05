@@ -160,7 +160,7 @@ export default function GameRoomPage() {
   };
 
   return (
-    <div className="ingame-shell relative min-h-screen w-screen overflow-hidden select-none font-catan">
+    <div className="ingame-shell fixed inset-0 h-screen h-[100dvh] w-screen overflow-hidden select-none font-catan">
       {/* 1. CENTRAL BOARD STAGE */}
       <div className="absolute inset-x-0 bottom-24 top-16 z-10 sm:inset-x-[6%] lg:inset-x-[14%] lg:bottom-22 lg:top-14">
         <Board2D
@@ -285,7 +285,7 @@ export default function GameRoomPage() {
       </div>
 
       {/* 5. BOTTOM CENTER: resource hand */}
-      <div className="pointer-events-auto absolute bottom-1 left-1/2 z-40 flex w-[min(58vw,58rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 justify-center px-1 sm:bottom-2">
+      <div className="pointer-events-auto absolute bottom-0 left-1/2 z-40 flex w-[min(58vw,58rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 justify-center px-1">
         <PlayerHand
           gameState={gameState}
           currentUserId={profile.id}

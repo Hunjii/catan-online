@@ -6,6 +6,7 @@ export interface Dice3DProps {
   value: number; // 1 to 6
   isRolling?: boolean;
   size?: number; // size in px, default 56
+  duration?: number; // animation duration in seconds, default 1.6
   color?: 'ivory' | 'red' | 'amber';
   dieIndex?: number; // 0 or 1, gives unique bounce trajectory
   onClick?: () => void;
@@ -27,6 +28,7 @@ export const Dice3D: React.FC<Dice3DProps> = ({
   value = 1,
   isRolling = false,
   size = 56,
+  duration = 1.6,
   color = 'ivory',
   dieIndex = 0,
   onClick,
@@ -239,7 +241,7 @@ export const Dice3D: React.FC<Dice3DProps> = ({
           transformStyle: 'preserve-3d',
           ...(isRolling
             ? {
-                animation: 'diceVerticalHop 1.1s cubic-bezier(0.15, 0.85, 0.25, 1) forwards',
+                animation: `diceVerticalHop ${duration}s cubic-bezier(0.15, 0.85, 0.25, 1) forwards`,
               }
             : {
                 transform: 'translateY(0)',
@@ -255,7 +257,7 @@ export const Dice3D: React.FC<Dice3DProps> = ({
             transformStyle: 'preserve-3d',
             ...(isRolling
               ? {
-                  animation: `${dieIndex === 0 ? 'diceTumble0' : 'diceTumble1'} 1.1s cubic-bezier(0.15, 0.85, 0.25, 1) forwards`,
+                  animation: `${dieIndex === 0 ? 'diceTumble0' : 'diceTumble1'} ${duration}s cubic-bezier(0.15, 0.85, 0.25, 1) forwards`,
                   ['--half-size' as string]: `${halfSize}px`,
                   ['--target-rx' as string]: `${targetRx}deg`,
                   ['--target-ry' as string]: `${targetRy}deg`,
