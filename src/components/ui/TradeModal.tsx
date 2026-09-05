@@ -137,6 +137,7 @@ export const TradeModal: React.FC<TradeModalProps> = ({
       onCreateTradeOffer(giving, requesting);
       setGiving({ wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 });
       setRequesting({ wood: 0, brick: 0, sheep: 0, wheat: 0, ore: 0 });
+      onClose();
     }
   };
 

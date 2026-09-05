@@ -21,19 +21,34 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
     isMe: boolean;
   } | null>(null);
 
-  const prevRollRef = useRef<string | null>(null);
+  const prevRollKeyRef = useRef<string | null>(null);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const rollEndTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // If there is no dice roll or we are still in roll_dice / setup / lobby phase, do not trigger overlay
-    if (!gameState.lastDiceRoll || gameState.phase === 'turn_roll_dice' || gameState.phase === 'lobby' || gameState.phase.startsWith('setup')) {
+    if (
+      !gameState.lastDiceRoll ||
+      gameState.phase === 'turn_roll_dice' ||
+      gameState.phase === 'lobby' ||
+      gameState.phase.startsWith('setup')
+    ) {
+      if (visible) {
+        setVisible(false);
+      }
       return;
     }
 
     // Create a unique key to detect when a new dice roll happens
     const rollKey = `${gameState.turnNumber}_${gameState.activePlayerIndex}_${gameState.lastDiceRoll[0]}_${gameState.lastDiceRoll[1]}`;
 
-    if (prevRollRef.current !== rollKey) {
-      prevRollRef.current = rollKey;
+    if (prevRollKeyRef.current !== rollKey) {
+      prevRollKeyRef.current = rollKey;
+
+      // Clear any existing active timers
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (rollEndTimerRef.current) clearTimeout(rollEndTimerRef.current);
+
       const activePlayerId = gameState.playerOrder[gameState.activePlayerIndex];
       const player = gameState.players.find((p) => p.id === activePlayerId);
       const isMe = activePlayerId === currentUserId;
@@ -54,27 +69,49 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
       soundEngine.playDiceRoll();
 
       // Finish 3D tumble after 1.1s
-      const rollEndTimer = setTimeout(() => {
+      rollEndTimerRef.current = setTimeout(() => {
         setIsRolling(false);
       }, 1100);
 
-      // Hide overlay after 2.6s
-      const hideTimer = setTimeout(() => {
+      // Hide overlay after 2.6s (guaranteed to execute even if gameState re-renders)
+      hideTimerRef.current = setTimeout(() => {
         setVisible(false);
       }, 2600);
-
-      return () => {
-        clearTimeout(rollEndTimer);
-        clearTimeout(hideTimer);
-      };
     }
-  }, [gameState.lastDiceRoll, gameState.phase, gameState.turnNumber, gameState.activePlayerIndex, gameState.players, gameState.playerOrder, currentUserId]);
+  }, [
+    gameState.lastDiceRoll,
+    gameState.phase,
+    gameState.turnNumber,
+    gameState.activePlayerIndex,
+    gameState.players,
+    gameState.playerOrder,
+    currentUserId,
+    visible,
+  ]);
+
+  // Clean up timers on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (rollEndTimerRef.current) clearTimeout(rollEndTimerRef.current);
+    };
+  }, []);
 
   if (!visible || !rollData) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center select-none font-catan">
-      <div className="flex flex-col items-center gap-3 rounded-3xl border-2 border-[#d4af37]/85 bg-gradient-to-b from-[#1b1008]/96 to-[#0d0703]/96 px-8 py-5 sm:px-10 sm:py-6 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_40px_rgba(212,175,55,0.35)] backdrop-blur-xl animate-fade-in">
+    <div
+      onClick={() => setVisible(false)}
+      className="fixed inset-0 z-50 flex items-center justify-center select-none font-catan cursor-pointer bg-black/20 backdrop-blur-[2px] animate-fade-in"
+    >
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          setVisible(false);
+        }}
+        className="flex flex-col items-center gap-3 rounded-3xl border-2 border-[#d4af37]/85 bg-gradient-to-b from-[#1b1008]/96 to-[#0d0703]/96 px-8 py-5 sm:px-10 sm:py-6 shadow-[0_25px_60px_rgba(0,0,0,0.95),0_0_40px_rgba(212,175,55,0.35)] backdrop-blur-xl animate-fade-in hover:border-amber-400 transition cursor-pointer"
+        title="Click to dismiss"
+      >
         {/* Header: Player Name Banner */}
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-amber-400 animate-ping" />

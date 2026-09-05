@@ -16,10 +16,11 @@ import { RobberModal } from '@/components/ui/RobberModal';
 import { RulebookModal } from '@/components/ui/RulebookModal';
 import { ProfileModal } from '@/components/ui/ProfileModal';
 import { ChatBox } from '@/components/ui/ChatBox';
-import { VictoryModal } from '@/components/ui/VictoryModal';
 import { TurnStatusBanner } from '@/components/ui/TurnStatusBanner';
+import { VictoryModal } from '@/components/ui/VictoryModal';
 import { LeaderboardModal } from '@/components/ui/LeaderboardModal';
 import { DiceRollOverlay } from '@/components/ui/DiceRollOverlay';
+import { TradeConfirmModal } from '@/components/ui/TradeConfirmModal';
 import {
   Loader2,
   Menu,
@@ -364,6 +365,14 @@ export default function GameRoomPage() {
       <DiceRollOverlay
         gameState={gameState}
         currentUserId={profile.id}
+      />
+
+      <TradeConfirmModal
+        gameState={gameState}
+        currentUserId={profile.id}
+        onAcceptTradeOffer={(offerId) => {
+          dispatch({ type: 'ACCEPT_TRADE_OFFER', playerId: profile.id, offerId });
+        }}
       />
 
       <VictoryModal
