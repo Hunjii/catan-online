@@ -23,6 +23,7 @@ import { DiceRollOverlay } from '@/components/ui/DiceRollOverlay';
 import { TradeConfirmModal } from '@/components/ui/TradeConfirmModal';
 import { StealNotificationOverlay } from '@/components/ui/StealNotificationOverlay';
 import { TurnNotificationOverlay } from '@/components/ui/TurnNotificationOverlay';
+import { DevCardPlayedOverlay } from '@/components/ui/DevCardPlayedOverlay';
 import {
   Loader2,
   Menu,
@@ -370,6 +371,11 @@ export default function GameRoomPage() {
       />
 
       <TurnNotificationOverlay
+        gameState={gameState}
+        currentUserId={profile.id}
+      />
+
+      <DevCardPlayedOverlay
         gameState={gameState}
         currentUserId={profile.id}
       />

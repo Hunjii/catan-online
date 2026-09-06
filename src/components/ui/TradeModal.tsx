@@ -110,7 +110,17 @@ export const TradeModal: React.FC<TradeModalProps> = ({
   // Calculation for Player Trade
   const totalGiving = Object.values(giving).reduce((a, b) => a + b, 0);
   const totalRequesting = Object.values(requesting).reduce((a, b) => a + b, 0);
-  const canSendPlayerOffer = isMyTurn && totalGiving > 0 && totalRequesting > 0;
+  const distinctGivingTypes = Object.entries(giving).filter(([_, c]) => c > 0).map(([res]) => res);
+  const distinctRequestingTypes = Object.entries(requesting).filter(([_, c]) => c > 0).map(([res]) => res);
+  const isMaxGivingTypes = distinctGivingTypes.length >= 3;
+  const isMaxRequestingTypes = distinctRequestingTypes.length >= 3;
+
+  const canSendPlayerOffer =
+    isMyTurn &&
+    totalGiving > 0 &&
+    totalRequesting > 0 &&
+    distinctGivingTypes.length <= 3 &&
+    distinctRequestingTypes.length <= 3;
 
   // Calculation for Bank Trade (4:1)
   const myBankGiveAvailable = myPlayer.resources[bankGiveRes] || 0;
@@ -383,13 +393,18 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                 <>
                   {/* Section 1: YOU OFFER */}
                   <div className="flex flex-col">
-                    <div className="mb-0.5">
-                      <h4 className="font-serif font-black text-xs sm:text-[13px] text-[#221308] leading-tight">
-                        YOU OFFER
-                      </h4>
-                      <p className="font-serif text-[8.5px] sm:text-[9.5px] text-[#553b26] leading-none">
-                        Select the resources you want to give:
-                      </p>
+                    <div className="mb-0.5 flex items-baseline justify-between">
+                      <div>
+                        <h4 className="font-serif font-black text-xs sm:text-[13px] text-[#221308] leading-tight">
+                          YOU OFFER
+                        </h4>
+                        <p className="font-serif text-[8.5px] sm:text-[9.5px] text-[#553b26] leading-none">
+                          Select resources to give (max 3 types):
+                        </p>
+                      </div>
+                      <span className="font-serif text-[8.5px] sm:text-[9px] font-bold text-[#8a5223]">
+                        {distinctGivingTypes.length}/3 types
+                      </span>
                     </div>
 
                     {/* 5 Offer Resource Slots */}
@@ -397,10 +412,16 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                       {RESOURCES.map((r) => {
                         const available = myPlayer.resources[r.type] || 0;
                         const currentVal = giving[r.type] || 0;
+                        const canIncrement = (currentVal > 0 || !isMaxGivingTypes) && currentVal < available;
+
                         return (
                           <div
                             key={`offer-${r.type}`}
-                            className="flex flex-col items-center justify-between p-1 rounded-lg bg-[#ebd9bd]/90 border border-[#c4a984]/70 shadow-[inset_0_1px_3px_rgba(0,0,0,0.12)] aspect-[1/1.5] transition-all hover:border-[#9c784e]"
+                            className={`flex flex-col items-center justify-between p-1 rounded-lg border aspect-[1/1.5] transition-all ${
+                              currentVal > 0
+                                ? 'bg-[#f7edd8] border-[#9c784e] shadow-sm'
+                                : 'bg-[#ebd9bd]/90 border-[#c4a984]/70 shadow-[inset_0_1px_3px_rgba(0,0,0,0.12)]'
+                            }`}
                           >
                             {/* Resource 3D Icon */}
                             <div className="relative w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 shrink-0 flex items-center justify-center">
@@ -433,10 +454,17 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                                 onClick={() =>
                                   setGiving((prev) => ({
                                     ...prev,
-                                    [r.type]: Math.min(available, prev[r.type] + 1),
+                                    [r.type]: Math.min(available, (prev[r.type] || 0) + 1),
                                   }))
                                 }
-                                disabled={currentVal >= available}
+                                disabled={!canIncrement}
+                                title={
+                                  currentVal >= available
+                                    ? `You only have ${available} ${r.label}`
+                                    : !canIncrement
+                                    ? 'Maximum 3 distinct resource types allowed'
+                                    : 'Add resource'
+                                }
                                 className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-white shadow-xs border border-stone-400/80 text-stone-800 flex items-center justify-center font-bold text-[9px] sm:text-[10px] hover:bg-stone-100 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                               >
                                 +
@@ -460,23 +488,34 @@ export const TradeModal: React.FC<TradeModalProps> = ({
 
                   {/* Section 2: YOU REQUEST */}
                   <div className="flex flex-col">
-                    <div className="mb-0.5">
-                      <h4 className="font-serif font-black text-xs sm:text-[13px] text-[#221308] leading-tight">
-                        YOU REQUEST
-                      </h4>
-                      <p className="font-serif text-[8.5px] sm:text-[9.5px] text-[#553b26] leading-none">
-                        Select the resources you want to receive:
-                      </p>
+                    <div className="mb-0.5 flex items-baseline justify-between">
+                      <div>
+                        <h4 className="font-serif font-black text-xs sm:text-[13px] text-[#221308] leading-tight">
+                          YOU REQUEST
+                        </h4>
+                        <p className="font-serif text-[8.5px] sm:text-[9.5px] text-[#553b26] leading-none">
+                          Select resources to receive (max 3 types, unlimited amount):
+                        </p>
+                      </div>
+                      <span className="font-serif text-[8.5px] sm:text-[9px] font-bold text-[#8a5223]">
+                        {distinctRequestingTypes.length}/3 types
+                      </span>
                     </div>
 
                     {/* 5 Request Resource Slots */}
                     <div className="grid grid-cols-5 gap-1">
                       {RESOURCES.map((r) => {
                         const currentVal = requesting[r.type] || 0;
+                        const canIncrement = currentVal > 0 || !isMaxRequestingTypes;
+
                         return (
                           <div
                             key={`request-${r.type}`}
-                            className="flex flex-col items-center justify-between p-1 rounded-lg bg-[#ebd9bd]/90 border border-[#c4a984]/70 shadow-[inset_0_1px_3px_rgba(0,0,0,0.12)] aspect-[1/1.5] transition-all hover:border-[#9c784e]"
+                            className={`flex flex-col items-center justify-between p-1 rounded-lg border aspect-[1/1.5] transition-all ${
+                              currentVal > 0
+                                ? 'bg-[#f7edd8] border-[#9c784e] shadow-sm'
+                                : 'bg-[#ebd9bd]/90 border-[#c4a984]/70 shadow-[inset_0_1px_3px_rgba(0,0,0,0.12)]'
+                            }`}
                           >
                             {/* Resource 3D Icon */}
                             <div className="relative w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 shrink-0 flex items-center justify-center">
@@ -509,10 +548,15 @@ export const TradeModal: React.FC<TradeModalProps> = ({
                                 onClick={() =>
                                   setRequesting((prev) => ({
                                     ...prev,
-                                    [r.type]: Math.min(10, prev[r.type] + 1),
+                                    [r.type]: (prev[r.type] || 0) + 1,
                                   }))
                                 }
-                                disabled={currentVal >= 10}
+                                disabled={!canIncrement}
+                                title={
+                                  !canIncrement
+                                    ? 'Maximum 3 distinct resource types allowed'
+                                    : 'Add resource'
+                                }
                                 className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full bg-white shadow-xs border border-stone-400/80 text-stone-800 flex items-center justify-center font-bold text-[9px] sm:text-[10px] hover:bg-stone-100 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                               >
                                 +

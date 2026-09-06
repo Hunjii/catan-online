@@ -86,6 +86,7 @@ export function createInitialGameState(roomId: string): GameState {
     largestArmyPlayerId: null,
     largestArmyCount: 0,
     lastStealEvent: null,
+    lastDevCardPlayedEvent: null,
     currentTradeOffer: null,
     logs: [
       {
@@ -778,6 +779,14 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       player.devCards.splice(mainIndex, 1);
       nextState.hasPlayedDevCardThisTurn = true;
 
+      // Broadcast dev card played event notification for other players
+      nextState.lastDevCardPlayedEvent = {
+        id: `devcard_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        playerId: activePlayerId,
+        card: action.card,
+        timestamp: Date.now(),
+      };
+
       switch (action.card) {
         case 'knight': {
           player.playedKnights++;
@@ -855,6 +864,11 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const player = nextState.players.find((p) => p.id === activePlayerId);
       if (!player || !hasEnoughResources(player, action.giving)) return nextState;
 
+      const distinctGiving = Object.entries(action.giving).filter(([_, c]) => c > 0);
+      const distinctRequesting = Object.entries(action.requesting).filter(([_, c]) => c > 0);
+      if (distinctGiving.length === 0 || distinctGiving.length > 3) return nextState;
+      if (distinctRequesting.length === 0 || distinctRequesting.length > 3) return nextState;
+
       nextState.currentTradeOffer = {
         id: `trade_${Date.now()}`,
         fromPlayerId: activePlayerId,
@@ -921,6 +935,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       nextState.currentTradeOffer = null;
       nextState.lastDiceRoll = null;
       nextState.lastStealEvent = null;
+      nextState.lastDevCardPlayedEvent = null;
 
       // Advance to next player
       nextState.activePlayerIndex = (nextState.activePlayerIndex + 1) % nextState.playerOrder.length;

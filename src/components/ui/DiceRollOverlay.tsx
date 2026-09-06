@@ -27,6 +27,7 @@ function getAvatarSrc(avatarSeed: string | undefined, slotIndex: number) {
 export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, currentUserId }) => {
   const [visible, setVisible] = useState(false);
   const [isRolling, setIsRolling] = useState(false);
+  const [showTotal, setShowTotal] = useState(false);
   const [rollData, setRollData] = useState<{
     d1: number;
     d2: number;
@@ -82,11 +83,13 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
 
       setVisible(true);
       setIsRolling(true);
+      setShowTotal(false);
       soundEngine.playDiceRoll();
 
-      // Finish 3D tumble after 1.8s
+      // Finish 3D tumble after 1.8s, then reveal the total score
       rollEndTimerRef.current = setTimeout(() => {
         setIsRolling(false);
+        setShowTotal(true);
       }, 1800);
 
       // Auto hide overlay after 4.8s
@@ -117,6 +120,7 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
     if (rollEndTimerRef.current) clearTimeout(rollEndTimerRef.current);
     setVisible(false);
+    setShowTotal(false);
   };
 
   if (!visible || !rollData) return null;
@@ -126,6 +130,26 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
       onClick={handleDismiss}
       className="fixed inset-0 z-50 flex items-center justify-center select-none font-catan cursor-pointer bg-black/60 backdrop-blur-[3px] animate-fade-in p-2 sm:p-4"
     >
+      <style>{`
+        @keyframes diceTotalPopIn {
+          0% {
+            transform: scale(0.3);
+            opacity: 0;
+            filter: blur(4px);
+          }
+          65% {
+            transform: scale(1.15);
+            opacity: 1;
+            filter: blur(0px);
+          }
+          100% {
+            transform: scale(1);
+            opacity: 1;
+            filter: blur(0px);
+          }
+        }
+      `}</style>
+
       {/* Modal Container with Authentic Dice Result Frame */}
       <div
         onClick={(e) => {
@@ -144,7 +168,7 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
           priority
         />
 
-        {/* 1. Top Subtitle Banner with Player Info (Shifted downwards slightly) */}
+        {/* 1. Top Subtitle Banner with Player Info */}
         <div className="absolute top-[21%] sm:top-[21.5%] inset-x-0 flex items-center justify-center gap-2 z-20">
           <div className="relative w-5 h-5 sm:w-6 sm:h-6 rounded-full overflow-hidden border border-[#8a5223] bg-[#1a0f06] shrink-0 shadow-sm ring-1 ring-[#d4af37]/60">
             <Image
@@ -188,7 +212,7 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
           </div>
         </div>
 
-        {/* 3. Bottom Result Score Banner Frame (ingame_dice_roll_result_frame_blank.png) - Shifted Downwards */}
+        {/* 3. Bottom Result Score Banner Frame (ingame_dice_roll_result_frame_blank.png) */}
         <div className="absolute bottom-[9.5%] sm:bottom-[10%] md:bottom-[10.5%] left-1/2 -translate-x-1/2 w-[64%] sm:w-[58%] md:w-[54%] aspect-[2086/489] z-20 flex items-center justify-center drop-shadow-[0_8px_20px_rgba(0,0,0,0.85)]">
           <Image
             src="/assets/ingame/ingame_dice_roll_result_frame_blank.png"
@@ -198,15 +222,18 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
             priority
           />
 
-          {/* Big Gold Total Score Number inside the Frame - Uniform Lining Digits */}
+          {/* Big Gold Total Score Number inside the Frame - Only shown after roll ends */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-0.5">
-            <span
-              className={`font-cinzel font-black text-3xl sm:text-4xl md:text-[46px] leading-none [font-variant-numeric:lining-nums_tabular-nums] tracking-normal text-transparent bg-clip-text bg-gradient-to-b from-[#fffce1] via-[#ffd700] to-[#e6a817] drop-shadow-[0_4px_12px_rgba(0,0,0,0.95),0_0_24px_rgba(255,215,0,0.8)] transition-all duration-300 ${
-                isRolling ? 'opacity-20 scale-85 blur-[2px]' : 'opacity-100 scale-100 blur-0'
-              }`}
-            >
-              {rollData.total}
-            </span>
+            {showTotal && (
+              <span
+                style={{
+                  animation: 'diceTotalPopIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+                }}
+                className="font-cinzel font-black text-3xl sm:text-4xl md:text-[46px] leading-none [font-variant-numeric:lining-nums_tabular-nums] tracking-normal text-transparent bg-clip-text bg-gradient-to-b from-[#fffce1] via-[#ffd700] to-[#e6a817] drop-shadow-[0_4px_12px_rgba(0,0,0,0.95),0_0_24px_rgba(255,215,0,0.8)]"
+              >
+                {rollData.total}
+              </span>
+            )}
           </div>
         </div>
       </div>

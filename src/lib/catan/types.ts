@@ -208,6 +208,9 @@ export interface GameState {
   // Robber Steal Event Notification
   lastStealEvent: StealEvent | null;
 
+  // Development Card Played Event Notification
+  lastDevCardPlayedEvent: DevCardPlayedEvent | null;
+
   // Trading
   currentTradeOffer: TradeOffer | null;
 
@@ -224,5 +227,12 @@ export interface StealEvent {
   thiefId: string;
   victimId: string;
   resource: ResourceType;
+  timestamp: number;
+}
+
+export interface DevCardPlayedEvent {
+  id: string;
+  playerId: string;
+  card: DevCardType;
   timestamp: number;
 }

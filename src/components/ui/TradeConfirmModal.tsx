@@ -43,34 +43,17 @@ function getAvatarSrc(avatarSeed: string | undefined, slotIndex: number) {
 
 // Convert resource record into slot items (up to 3 slots)
 function expandResourceSlots(record: Record<ResourceType, number>): ResourceItem[] {
-  const totalCount = Object.values(record).reduce((a, b) => a + b, 0);
   const slots: ResourceItem[] = [];
 
-  if (totalCount <= 3) {
-    // If 3 or fewer total resources, show individual unit cards (matches exact screenshot layout)
-    for (const [res, count] of Object.entries(record)) {
-      const type = res as ResourceType;
-      for (let i = 0; i < count; i++) {
-        slots.push({
-          type,
-          label: RESOURCE_INFO[type]?.label || type,
-          icon: RESOURCE_INFO[type]?.icon || '',
-          count: 1,
-        });
-      }
-    }
-  } else {
-    // If more than 3 resources, group by resource type to fit into the 3 slots
-    for (const [res, count] of Object.entries(record)) {
-      const type = res as ResourceType;
-      if (count > 0) {
-        slots.push({
-          type,
-          label: RESOURCE_INFO[type]?.label || type,
-          icon: RESOURCE_INFO[type]?.icon || '',
-          count,
-        });
-      }
+  for (const [res, count] of Object.entries(record)) {
+    const type = res as ResourceType;
+    if (count > 0) {
+      slots.push({
+        type,
+        label: RESOURCE_INFO[type]?.label || type,
+        icon: RESOURCE_INFO[type]?.icon || '',
+        count,
+      });
     }
   }
 
@@ -152,8 +135,8 @@ export const TradeConfirmModal: React.FC<TradeConfirmModalProps> = ({
           />
         </button>
 
-        {/* 1. TOP INITIATOR HEADER: Centered Avatar & Text */}
-        <div className="relative z-10 pt-[10.5%] sm:pt-[9.8%] flex items-center justify-center gap-3 sm:gap-4 px-6">
+        {/* 1. TOP INITIATOR HEADER: Centered Avatar & Text (Shifted downwards to clear title banner) */}
+        <div className="relative z-10 pt-[14.5%] sm:pt-[14%] md:pt-[14.5%] flex items-center justify-center gap-3 sm:gap-4 px-6">
           {/* Avatar Ring */}
           <div className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 border-[#5a381e] bg-[#1a0f06] shadow-md shrink-0 ring-2 ring-[#d4af37]/60">
             <Image
@@ -165,11 +148,11 @@ export const TradeConfirmModal: React.FC<TradeConfirmModalProps> = ({
           </div>
 
           {/* Name & Prompt Text */}
-          <div className="flex flex-col justify-center text-left">
+          <div className="flex flex-col justify-center text-left pt-0.5 sm:pt-1">
             <h3 className="font-serif font-black text-base sm:text-lg md:text-xl text-[#1e130a] leading-tight drop-shadow-xs">
               {initiatorPlayer?.name || 'Player'}
             </h3>
-            <p className="font-serif text-xs sm:text-sm text-[#4a3520] font-semibold leading-tight">
+            <p className="font-serif text-xs sm:text-sm text-[#4a3520] font-semibold leading-tight mt-0.5 sm:mt-1">
               wants to trade with you
             </p>
           </div>
