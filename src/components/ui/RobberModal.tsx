@@ -10,6 +10,7 @@ interface RobberModalProps {
   currentUserId: string;
   onSubmitDiscard: (discarded: Partial<Record<ResourceType, number>>) => void;
   onStealResource: (victimPlayerId: string) => void;
+  isDiceRolling?: boolean;
 }
 
 function getPlayerInitials(name: string) {
@@ -69,6 +70,7 @@ export const RobberModal: React.FC<RobberModalProps> = ({
   currentUserId,
   onSubmitDiscard,
   onStealResource,
+  isDiceRolling,
 }) => {
   const [discarding, setDiscarding] = useState<Record<ResourceType, number>>({
     wood: 0,
@@ -114,7 +116,7 @@ export const RobberModal: React.FC<RobberModalProps> = ({
     }
   }, [gameState.phase, gameState.turnNumber]);
 
-  if (!myPlayer || (!mustDiscard && !mustSteal && !isWaitingForDiscards)) return null;
+  if (isDiceRolling || !myPlayer || (!mustDiscard && !mustSteal && !isWaitingForDiscards)) return null;
 
   // --- CASE 3: RENDER WAITING FOR DISCARDS MODAL ---
   if (isWaitingForDiscards) {

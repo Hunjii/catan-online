@@ -120,6 +120,27 @@ export const DevCardModal: React.FC<DevCardModalProps> = ({
     cardCounts[c] = (cardCounts[c] || 0) + 1;
   });
 
+  // Count cards bought this turn
+  const boughtThisTurnCounts: Record<DevCardType, number> = {
+    knight: 0,
+    road_building: 0,
+    year_of_plenty: 0,
+    monopoly: 0,
+    victory_point: 0,
+  };
+  (myPlayer.newDevCardsBoughtThisTurn || []).forEach((c) => {
+    boughtThisTurnCounts[c] = (boughtThisTurnCounts[c] || 0) + 1;
+  });
+
+  // Playable counts (owned minus newly bought in current turn)
+  const playableCounts: Record<DevCardType, number> = {
+    knight: Math.max(0, cardCounts.knight - boughtThisTurnCounts.knight),
+    road_building: Math.max(0, cardCounts.road_building - boughtThisTurnCounts.road_building),
+    year_of_plenty: Math.max(0, cardCounts.year_of_plenty - boughtThisTurnCounts.year_of_plenty),
+    monopoly: Math.max(0, cardCounts.monopoly - boughtThisTurnCounts.monopoly),
+    victory_point: 0,
+  };
+
   const allCardTypes: DevCardType[] = [
     'knight',
     'road_building',
@@ -134,14 +155,16 @@ export const DevCardModal: React.FC<DevCardModalProps> = ({
       ? selectedCard
       : ownedCardTypes[0] || 'knight';
 
-  const isSelectedBoughtThisTurn = myPlayer.newDevCardsBoughtThisTurn.includes(activeSelectedCard);
   const ownsSelectedCard = cardCounts[activeSelectedCard] > 0;
+  const hasPlayableInstance = playableCounts[activeSelectedCard] > 0;
+  const isAllBoughtThisTurn = ownsSelectedCard && !hasPlayableInstance && boughtThisTurnCounts[activeSelectedCard] > 0;
+
   const isSelectedPlayable =
     ownsSelectedCard &&
+    hasPlayableInstance &&
     isMyTurn &&
     gameState.phase === 'turn_actions' &&
     !alreadyPlayedThisTurn &&
-    !isSelectedBoughtThisTurn &&
     activeSelectedCard !== 'victory_point';
 
   const handleSelectCard = (card: DevCardType) => {
@@ -173,7 +196,7 @@ export const DevCardModal: React.FC<DevCardModalProps> = ({
       ? 'NOT YOUR TURN'
       : alreadyPlayedThisTurn
       ? 'ALREADY PLAYED 1 CARD THIS TURN'
-      : isSelectedBoughtThisTurn
+      : isAllBoughtThisTurn
       ? 'BOUGHT THIS TURN (LOCKED)'
       : null;
 

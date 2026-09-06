@@ -9,6 +9,7 @@ import { Dice3D } from './Dice3D';
 interface DiceRollOverlayProps {
   gameState: GameState;
   currentUserId: string;
+  onVisibilityChange?: (visible: boolean) => void;
 }
 
 const AVATAR_FALLBACKS = ['alexander', 'elara', 'magnus', 'lyra'] as const;
@@ -24,7 +25,11 @@ function getAvatarSrc(avatarSeed: string | undefined, slotIndex: number) {
   return `/assets/avatars/${avatar}.png`;
 }
 
-export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, currentUserId }) => {
+export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({
+  gameState,
+  currentUserId,
+  onVisibilityChange,
+}) => {
   const [visible, setVisible] = useState(false);
   const [isRolling, setIsRolling] = useState(false);
   const [showTotal, setShowTotal] = useState(false);
@@ -41,6 +46,10 @@ export const DiceRollOverlay: React.FC<DiceRollOverlayProps> = ({ gameState, cur
   const prevRollKeyRef = useRef<string | null>(null);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const rollEndTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    onVisibilityChange?.(visible);
+  }, [visible, onVisibilityChange]);
 
   useEffect(() => {
     // If there is no dice roll, do not trigger overlay

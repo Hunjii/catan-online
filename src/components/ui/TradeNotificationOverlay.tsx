@@ -120,8 +120,8 @@ export const TradeNotificationOverlay: React.FC<TradeNotificationOverlayProps> =
             priority
           />
 
-          {/* Hanging Flag on the Left matching current player's color */}
-          <div className="absolute left-[3.2%] top-[-8%] h-[116%] aspect-[989/1503] pointer-events-none drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] z-20">
+          {/* Hanging Flag on the Left (Slightly smaller, shifted left) */}
+          <div className="absolute left-[1%] sm:left-[1.2%] top-[-4%] sm:top-[-5%] h-[104%] sm:h-[105%] aspect-[989/1503] pointer-events-none drop-shadow-[0_10px_20px_rgba(0,0,0,0.9)] z-20">
             <Image
               src={flagSrc}
               alt="Player Flag"
@@ -131,8 +131,8 @@ export const TradeNotificationOverlay: React.FC<TradeNotificationOverlayProps> =
             />
           </div>
 
-          {/* Cancel Button on the right */}
-          <div className="absolute bottom-[11%] sm:bottom-[12%] right-[8%] sm:right-[10%] md:right-[12%] w-[32%] sm:w-[30%] md:w-[28%] aspect-[1720/493] z-20">
+          {/* Cancel Button (Centered horizontally) */}
+          <div className="absolute bottom-[10%] sm:bottom-[11%] md:bottom-[12%] left-1/2 -translate-x-1/2 w-[34%] sm:w-[31%] md:w-[29%] aspect-[1720/493] z-20">
             <button
               onClick={handleCancel}
               className="relative w-full h-full hover:scale-105 active:scale-95 transition-all duration-150 drop-shadow-[0_4px_10px_rgba(0,0,0,0.7)] cursor-pointer group"

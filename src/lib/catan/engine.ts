@@ -771,13 +771,15 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       const player = nextState.players.find((p) => p.id === activePlayerId);
       if (!player) return nextState;
 
-      // Cannot play a card bought in the same turn
-      const playableCards = player.devCards.filter((c) => !player.newDevCardsBoughtThisTurn.includes(c));
-      const cardIndex = playableCards.indexOf(action.card);
-      if (cardIndex === -1) return nextState;
+      // Cannot play a card bought in the same turn (compare count owned vs count bought this turn)
+      const totalCount = player.devCards.filter((c) => c === action.card).length;
+      const boughtThisTurnCount = (player.newDevCardsBoughtThisTurn || []).filter((c) => c === action.card).length;
+      const playableCount = totalCount - boughtThisTurnCount;
+      if (playableCount <= 0) return nextState;
 
       // Remove 1 instance from player's devCards
       const mainIndex = player.devCards.indexOf(action.card);
+      if (mainIndex === -1) return nextState;
       player.devCards.splice(mainIndex, 1);
       nextState.hasPlayedDevCardThisTurn = true;
 

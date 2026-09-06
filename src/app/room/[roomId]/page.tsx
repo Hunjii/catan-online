@@ -53,6 +53,7 @@ export default function GameRoomPage() {
   const [isRulebookOpen, setIsRulebookOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isDiceOverlayActive, setIsDiceOverlayActive] = useState(false);
 
   if (!isProfileLoaded || !gameState) {
     return (
@@ -84,7 +85,7 @@ export default function GameRoomPage() {
   // 1. Lobby Phase
   if (gameState.phase === 'lobby') {
     return (
-      <div className="relative min-h-screen bg-slate-950 overflow-hidden font-catan">
+      <>
         <LobbyRoom
           gameState={gameState}
           currentUserId={profile.id}
@@ -120,7 +121,7 @@ export default function GameRoomPage() {
           isOpen={isRulebookOpen}
           onClose={() => setIsRulebookOpen(false)}
         />
-      </div>
+      </>
     );
   }
 
@@ -324,6 +325,7 @@ export default function GameRoomPage() {
       <RobberModal
         gameState={gameState}
         currentUserId={profile.id}
+        isDiceRolling={isDiceOverlayActive}
         onSubmitDiscard={(discarded) => {
           dispatch({ type: 'SUBMIT_DISCARD', playerId: profile.id, discardedResources: discarded });
         }}
@@ -356,6 +358,7 @@ export default function GameRoomPage() {
       <DiceRollOverlay
         gameState={gameState}
         currentUserId={profile.id}
+        onVisibilityChange={setIsDiceOverlayActive}
       />
 
       <TradeConfirmModal

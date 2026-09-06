@@ -120,9 +120,9 @@ export const DevCardPlayedOverlay: React.FC<DevCardPlayedOverlayProps> = ({
         />
 
         {/* Top Parchment Info Area: Centered Avatar & Text Description */}
-        <div className="absolute top-[16.5%] sm:top-[17%] inset-x-[8%] h-[15%] flex items-center justify-center gap-3 sm:gap-4 z-20 px-2">
+        <div className="absolute top-[15%] sm:top-[15.5%] inset-x-[4%] h-[16%] flex items-center justify-center gap-3 sm:gap-4 z-20 px-2">
           {/* Avatar Ring */}
-          <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-13 md:h-13 rounded-full overflow-hidden border-2 border-[#5a381e] bg-[#1a0f06] shadow-md shrink-0 ring-2 ring-[#d4af37]/70">
+          <div className="relative w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-[#5a381e] bg-[#1a0f06] shadow-md shrink-0 ring-2 ring-[#d4af37]/70">
             <Image
               src={getAvatarSrc(eventData.avatarSeed, eventData.slotIndex)}
               alt={eventData.playerName}
@@ -132,7 +132,7 @@ export const DevCardPlayedOverlay: React.FC<DevCardPlayedOverlayProps> = ({
           </div>
 
           {/* Player Name and Action Text */}
-          <div className="flex flex-col justify-center text-left">
+          <div className="flex flex-col justify-center text-left max-w-[80%]">
             <p className="font-cinzel text-xs sm:text-sm md:text-base text-[#2a1306] font-bold leading-tight drop-shadow-xs">
               <span className="font-black text-[#872e04] text-sm sm:text-base md:text-lg">
                 {eventData.playerName}
@@ -145,8 +145,8 @@ export const DevCardPlayedOverlay: React.FC<DevCardPlayedOverlayProps> = ({
           </div>
         </div>
 
-        {/* Central Development Card (Front face only, enlarged display) */}
-        <div className="absolute top-[33%] sm:top-[33.5%] left-1/2 -translate-x-1/2 w-[29%] sm:w-[27%] md:w-[25.5%] aspect-[1024/1526] z-20 flex items-center justify-center">
+        {/* Central Development Card (Front face only, shifted up slightly) */}
+        <div className="absolute top-[29%] sm:top-[29.5%] left-1/2 -translate-x-1/2 w-[31%] sm:w-[28.5%] md:w-[27%] aspect-[1024/1526] z-20 flex items-center justify-center">
           <div className="relative w-full h-full rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.95)] border-2 border-[#d4af37]/90 bg-[#1a0f06] drop-shadow-[0_0_24px_rgba(245,158,11,0.4)] transition-transform hover:scale-[1.03] duration-200">
             <Image
               src={cardData.image}
@@ -158,8 +158,8 @@ export const DevCardPlayedOverlay: React.FC<DevCardPlayedOverlayProps> = ({
           </div>
         </div>
 
-        {/* Bottom OK Button Asset */}
-        <div className="absolute bottom-[3.5%] sm:bottom-[3.8%] md:bottom-[4%] left-1/2 -translate-x-1/2 w-[28%] sm:w-[26%] md:w-[24%] aspect-[1846/349] z-30">
+        {/* Bottom OK Button Asset (Enlarged) */}
+        <div className="absolute bottom-[3.2%] sm:bottom-[3.5%] md:bottom-[3.8%] left-1/2 -translate-x-1/2 w-[34%] sm:w-[31%] md:w-[29%] aspect-[1846/349] z-30">
           <button
             onClick={handleClose}
             className="relative w-full h-full hover:scale-105 active:scale-95 transition-all duration-150 drop-shadow-[0_6px_14px_rgba(0,0,0,0.85)] cursor-pointer group"
