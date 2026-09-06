@@ -119,10 +119,10 @@ export const DevCardPlayedOverlay: React.FC<DevCardPlayedOverlayProps> = ({
           priority
         />
 
-        {/* Top Parchment Info Area: Centered Avatar & Text Description */}
-        <div className="absolute top-[15%] sm:top-[15.5%] inset-x-[4%] h-[16%] flex items-center justify-center gap-3 sm:gap-4 z-20 px-2">
+        {/* Top Parchment Info Area: Centered Avatar & Text Description (Inline Text) */}
+        <div className="absolute top-[14%] sm:top-[14.5%] inset-x-[4%] h-[16%] flex items-center justify-center gap-2.5 sm:gap-3.5 z-20 px-2">
           {/* Avatar Ring */}
-          <div className="relative w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-full overflow-hidden border-2 border-[#5a381e] bg-[#1a0f06] shadow-md shrink-0 ring-2 ring-[#d4af37]/70">
+          <div className="relative w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-full overflow-hidden border-2 border-[#5a381e] bg-[#1a0f06] shadow-md shrink-0 ring-2 ring-[#d4af37]/70">
             <Image
               src={getAvatarSrc(eventData.avatarSeed, eventData.slotIndex)}
               alt={eventData.playerName}
@@ -131,22 +131,22 @@ export const DevCardPlayedOverlay: React.FC<DevCardPlayedOverlayProps> = ({
             />
           </div>
 
-          {/* Player Name and Action Text */}
-          <div className="flex flex-col justify-center text-left max-w-[80%]">
-            <p className="font-cinzel text-xs sm:text-sm md:text-base text-[#2a1306] font-bold leading-tight drop-shadow-xs">
+          {/* Player Name and Action Text on the same line */}
+          <div className="flex items-center text-left max-w-[85%]">
+            <p className="font-cinzel text-xs sm:text-sm md:text-base text-[#2a1306] font-bold leading-snug drop-shadow-xs">
               <span className="font-black text-[#872e04] text-sm sm:text-base md:text-lg">
                 {eventData.playerName}
               </span>{' '}
-              played a Development Card:
+              played a Development Card:{' '}
+              <span className="font-serif font-extrabold text-[#9a3412] text-xs sm:text-sm md:text-base whitespace-nowrap">
+                {cardData.name}
+              </span>
             </p>
-            <span className="font-serif text-xs sm:text-sm md:text-base font-extrabold text-[#9a3412] leading-tight mt-0.5">
-              {cardData.name}
-            </span>
           </div>
         </div>
 
-        {/* Central Development Card (Front face only, shifted up slightly) */}
-        <div className="absolute top-[29%] sm:top-[29.5%] left-1/2 -translate-x-1/2 w-[31%] sm:w-[28.5%] md:w-[27%] aspect-[1024/1526] z-20 flex items-center justify-center">
+        {/* Central Development Card (Front face only, shifted up higher) */}
+        <div className="absolute top-[26%] sm:top-[26.5%] left-1/2 -translate-x-1/2 w-[31%] sm:w-[28.5%] md:w-[27%] aspect-[1024/1526] z-20 flex items-center justify-center">
           <div className="relative w-full h-full rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_16px_36px_rgba(0,0,0,0.95)] border-2 border-[#d4af37]/90 bg-[#1a0f06] drop-shadow-[0_0_24px_rgba(245,158,11,0.4)] transition-transform hover:scale-[1.03] duration-200">
             <Image
               src={cardData.image}

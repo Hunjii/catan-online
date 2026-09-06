@@ -89,6 +89,7 @@ export function createInitialGameState(roomId: string): GameState {
     lastStealEvent: null,
     lastDevCardPlayedEvent: null,
     lastTradeDeclinedEvent: null,
+    lastTradeAcceptedEvent: null,
     currentTradeOffer: null,
     logs: [
       {
@@ -914,6 +915,13 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         initiator.resources[r] += count;
       }
 
+      nextState.lastTradeAcceptedEvent = {
+        id: `trade_accepted_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        fromPlayerId: offer.fromPlayerId,
+        acceptedByPlayerId: acceptor.id,
+        timestamp: Date.now(),
+      };
+
       nextState.currentTradeOffer = null;
       addLog(nextState, `🤝 ${initiator.name} và ${acceptor.name} đã hoàn tất giao dịch!`, 'trade');
       return nextState;
@@ -972,6 +980,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       nextState.roadBuildingRoadsRemaining = 0;
       nextState.currentTradeOffer = null;
       nextState.lastTradeDeclinedEvent = null;
+      nextState.lastTradeAcceptedEvent = null;
       nextState.lastDiceRoll = null;
       nextState.lastStealEvent = null;
       nextState.lastDevCardPlayedEvent = null;

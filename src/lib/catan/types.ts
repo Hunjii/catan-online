@@ -150,6 +150,13 @@ export interface TradeDeclinedEvent {
   timestamp: number;
 }
 
+export interface TradeAcceptedEvent {
+  id: string;
+  fromPlayerId: string;
+  acceptedByPlayerId: string;
+  timestamp: number;
+}
+
 export interface DiscardStatus {
   [playerId: string]: {
     requiredCount: number;
@@ -221,6 +228,7 @@ export interface GameState {
   // Trading
   currentTradeOffer: TradeOffer | null;
   lastTradeDeclinedEvent: TradeDeclinedEvent | null;
+  lastTradeAcceptedEvent: TradeAcceptedEvent | null;
 
   // Logs & Chat
   logs: GameLogEntry[];

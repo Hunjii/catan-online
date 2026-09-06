@@ -30,6 +30,9 @@ export const TradeNotificationOverlay: React.FC<TradeNotificationOverlayProps> =
   const [dismissedDeclinedId, setDismissedDeclinedId] = useState<string | null>(null);
   const prevDeclinedIdRef = useRef<string | null>(null);
 
+  const [dismissedAcceptedId, setDismissedAcceptedId] = useState<string | null>(null);
+  const prevAcceptedIdRef = useRef<string | null>(null);
+
   const activeOffer = gameState?.currentTradeOffer;
   const isWaiting =
     activeOffer &&
@@ -42,6 +45,12 @@ export const TradeNotificationOverlay: React.FC<TradeNotificationOverlayProps> =
     declinedEvent.fromPlayerId === currentUserId &&
     dismissedDeclinedId !== declinedEvent.id;
 
+  const acceptedEvent = gameState?.lastTradeAcceptedEvent;
+  const isAccepted =
+    acceptedEvent &&
+    acceptedEvent.fromPlayerId === currentUserId &&
+    dismissedAcceptedId !== acceptedEvent.id;
+
   const myPlayer = gameState?.players.find((p) => p.id === currentUserId);
   const flagSrc = FLAG_COLOR_MAP[myPlayer?.color || 'green'] || FLAG_COLOR_MAP.green;
 
@@ -52,6 +61,14 @@ export const TradeNotificationOverlay: React.FC<TradeNotificationOverlayProps> =
       soundEngine.playRobber();
     }
   }, [declinedEvent, isDeclined]);
+
+  // Play chime sound when another player accepts your trade offer
+  useEffect(() => {
+    if (acceptedEvent && isAccepted && prevAcceptedIdRef.current !== acceptedEvent.id) {
+      prevAcceptedIdRef.current = acceptedEvent.id;
+      soundEngine.playResourceChime();
+    }
+  }, [acceptedEvent, isAccepted]);
 
   const handleCancel = () => {
     soundEngine.playClick();
@@ -65,7 +82,55 @@ export const TradeNotificationOverlay: React.FC<TradeNotificationOverlayProps> =
     soundEngine.playClick();
   };
 
-  // Case 1: Trade Declined by all other players
+  const handleDismissAccepted = () => {
+    if (acceptedEvent) {
+      setDismissedAcceptedId(acceptedEvent.id);
+    }
+    soundEngine.playClick();
+  };
+
+  // Case 1: Trade Accepted by another player
+  if (isAccepted) {
+    return (
+      <div
+        onClick={handleDismissAccepted}
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-[2px] animate-fade-in select-none font-catan cursor-pointer"
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-[min(94vw,560px)] sm:w-[min(88vw,660px)] md:w-[min(80vw,700px)] aspect-[1479/1016] drop-shadow-[0_25px_60px_rgba(0,0,0,0.95)] animate-fade-in cursor-default"
+        >
+          {/* Trade Accepted Notification Board Asset */}
+          <Image
+            src="/assets/ingame/notification/ingame_trade_accepted_notification_en.png"
+            alt="Trade Accepted"
+            fill
+            className="object-contain pointer-events-none drop-shadow-2xl"
+            priority
+          />
+
+          {/* OK Button Asset */}
+          <div className="absolute bottom-[4.5%] sm:bottom-[5%] md:bottom-[5.5%] left-1/2 -translate-x-1/2 w-[32%] sm:w-[29%] md:w-[27%] aspect-[1846/349] z-20">
+            <button
+              onClick={handleDismissAccepted}
+              className="relative w-full h-full hover:scale-105 active:scale-95 transition-all duration-150 drop-shadow-[0_6px_14px_rgba(0,0,0,0.85)] cursor-pointer group"
+              title="OK"
+            >
+              <Image
+                src="/assets/ingame/robber/ingame_resources_stolen_ok_button_en.png"
+                alt="OK"
+                fill
+                className="object-contain group-hover:brightness-110"
+                priority
+              />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Case 2: Trade Declined by all other players
   if (isDeclined) {
     return (
       <div
