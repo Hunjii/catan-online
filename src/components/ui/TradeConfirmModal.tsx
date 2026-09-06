@@ -10,7 +10,7 @@ interface TradeConfirmModalProps {
   gameState: GameState;
   currentUserId: string;
   onAcceptTradeOffer: (offerId: string) => void;
-  onDeclineTradeOffer?: () => void;
+  onDeclineTradeOffer?: (offerId: string) => void;
 }
 
 interface ResourceItem {
@@ -72,7 +72,8 @@ export const TradeConfirmModal: React.FC<TradeConfirmModalProps> = ({
   const activeOffer = gameState?.currentTradeOffer;
   const isOfferOpen = activeOffer && activeOffer.status === 'open';
   const isOpponentOffer = isOfferOpen && activeOffer.fromPlayerId !== currentUserId;
-  const isVisible = isOpponentOffer && dismissedOfferId !== activeOffer.id;
+  const isAlreadyDeclined = activeOffer?.declinedByPlayerIds?.includes(currentUserId);
+  const isVisible = isOpponentOffer && dismissedOfferId !== activeOffer.id && !isAlreadyDeclined;
 
   // Sound chime when a new trade offer pops up
   useEffect(() => {
@@ -98,7 +99,7 @@ export const TradeConfirmModal: React.FC<TradeConfirmModalProps> = ({
     setDismissedOfferId(activeOffer.id);
     soundEngine.playClick();
     if (onDeclineTradeOffer) {
-      onDeclineTradeOffer();
+      onDeclineTradeOffer(activeOffer.id);
     }
   };
 

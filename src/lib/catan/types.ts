@@ -141,6 +141,13 @@ export interface TradeOffer {
   requesting: Record<ResourceType, number>;
   status: 'open' | 'accepted' | 'rejected' | 'cancelled';
   acceptedByPlayerId?: string;
+  declinedByPlayerIds?: string[];
+}
+
+export interface TradeDeclinedEvent {
+  id: string;
+  fromPlayerId: string;
+  timestamp: number;
 }
 
 export interface DiscardStatus {
@@ -213,6 +220,7 @@ export interface GameState {
 
   // Trading
   currentTradeOffer: TradeOffer | null;
+  lastTradeDeclinedEvent: TradeDeclinedEvent | null;
 
   // Logs & Chat
   logs: GameLogEntry[];

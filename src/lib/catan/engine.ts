@@ -34,6 +34,7 @@ export type GameAction =
   | { type: 'EXECUTE_BANK_TRADE'; playerId: string; give: ResourceType; giveCount: number; get: ResourceType }
   | { type: 'CREATE_TRADE_OFFER'; playerId: string; giving: Record<ResourceType, number>; requesting: Record<ResourceType, number> }
   | { type: 'ACCEPT_TRADE_OFFER'; playerId: string; offerId: string }
+  | { type: 'DECLINE_TRADE_OFFER'; playerId: string; offerId: string }
   | { type: 'CANCEL_TRADE_OFFER'; playerId: string }
   | { type: 'END_TURN'; playerId: string }
   | { type: 'SEND_CHAT'; message: ChatMessage };
@@ -87,6 +88,7 @@ export function createInitialGameState(roomId: string): GameState {
     largestArmyCount: 0,
     lastStealEvent: null,
     lastDevCardPlayedEvent: null,
+    lastTradeDeclinedEvent: null,
     currentTradeOffer: null,
     logs: [
       {
@@ -875,6 +877,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
         giving: action.giving,
         requesting: action.requesting,
         status: 'open',
+        declinedByPlayerIds: [],
       };
 
       addLog(nextState, `🤝 ${player.name} đã đưa ra đề nghị giao thương với mọi người.`, 'trade', player.id);
@@ -914,9 +917,42 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return nextState;
     }
 
+    case 'DECLINE_TRADE_OFFER': {
+      if (!nextState.currentTradeOffer || nextState.currentTradeOffer.status !== 'open') return nextState;
+      if (nextState.currentTradeOffer.id !== action.offerId) return nextState;
+      if (action.playerId === nextState.currentTradeOffer.fromPlayerId) return nextState;
+
+      const offer = nextState.currentTradeOffer;
+      if (!offer.declinedByPlayerIds) {
+        offer.declinedByPlayerIds = [];
+      }
+      if (!offer.declinedByPlayerIds.includes(action.playerId)) {
+        offer.declinedByPlayerIds.push(action.playerId);
+      }
+
+      // Check if all other players have declined
+      const otherPlayers = nextState.players.filter((p) => p.id !== offer.fromPlayerId);
+      const allDeclined =
+        otherPlayers.length > 0 &&
+        otherPlayers.every((p) => offer.declinedByPlayerIds?.includes(p.id));
+
+      if (allDeclined) {
+        nextState.lastTradeDeclinedEvent = {
+          id: offer.id,
+          fromPlayerId: offer.fromPlayerId,
+          timestamp: Date.now(),
+        };
+        nextState.currentTradeOffer = null;
+        addLog(nextState, `🤝 Đề nghị giao thương đã bị tất cả người chơi từ chối.`, 'trade');
+      }
+
+      return nextState;
+    }
+
     case 'CANCEL_TRADE_OFFER': {
       if (nextState.currentTradeOffer && nextState.currentTradeOffer.fromPlayerId === action.playerId) {
         nextState.currentTradeOffer = null;
+        addLog(nextState, `🤝 Đề nghị giao thương đã bị huỷ bởi người tạo.`, 'trade', action.playerId);
       }
       return nextState;
     }
@@ -933,6 +969,7 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       nextState.hasPlayedDevCardThisTurn = false;
       nextState.roadBuildingRoadsRemaining = 0;
       nextState.currentTradeOffer = null;
+      nextState.lastTradeDeclinedEvent = null;
       nextState.lastDiceRoll = null;
       nextState.lastStealEvent = null;
       nextState.lastDevCardPlayedEvent = null;

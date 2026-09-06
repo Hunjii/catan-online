@@ -24,6 +24,7 @@ import { TradeConfirmModal } from '@/components/ui/TradeConfirmModal';
 import { StealNotificationOverlay } from '@/components/ui/StealNotificationOverlay';
 import { TurnNotificationOverlay } from '@/components/ui/TurnNotificationOverlay';
 import { DevCardPlayedOverlay } from '@/components/ui/DevCardPlayedOverlay';
+import { TradeNotificationOverlay } from '@/components/ui/TradeNotificationOverlay';
 import {
   Loader2,
   Menu,
@@ -362,6 +363,17 @@ export default function GameRoomPage() {
         currentUserId={profile.id}
         onAcceptTradeOffer={(offerId) => {
           dispatch({ type: 'ACCEPT_TRADE_OFFER', playerId: profile.id, offerId });
+        }}
+        onDeclineTradeOffer={(offerId) => {
+          dispatch({ type: 'DECLINE_TRADE_OFFER', playerId: profile.id, offerId });
+        }}
+      />
+
+      <TradeNotificationOverlay
+        gameState={gameState}
+        currentUserId={profile.id}
+        onCancelTradeOffer={() => {
+          dispatch({ type: 'CANCEL_TRADE_OFFER', playerId: profile.id });
         }}
       />
 
