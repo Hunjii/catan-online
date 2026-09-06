@@ -26,7 +26,7 @@ export const TurnNotificationOverlay: React.FC<TurnNotificationOverlayProps> = (
   currentUserId,
 }) => {
   const [visible, setVisible] = useState(false);
-  const prevTurnKeyRef = useRef<string | null>(null);
+  const prevActivePlayerIdRef = useRef<string | null>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const activePlayerId = gameState.playerOrder[gameState.activePlayerIndex];
@@ -34,21 +34,17 @@ export const TurnNotificationOverlay: React.FC<TurnNotificationOverlayProps> = (
   const myPlayer = gameState.players.find((p) => p.id === currentUserId);
 
   useEffect(() => {
-    // Only show during active game phases (not in lobby or game over)
+    // Do not show during lobby or game over
     if (gameState.phase === 'lobby' || gameState.phase === 'game_over') {
+      prevActivePlayerIdRef.current = activePlayerId;
       return;
     }
 
-    if (!isMyTurn) {
-      return;
-    }
+    // Check if turn just transitioned from another player (or starting turn) to current user
+    const wasOtherPlayer = prevActivePlayerIdRef.current !== currentUserId;
+    prevActivePlayerIdRef.current = activePlayerId;
 
-    // Unique key identifying each turn transition
-    const turnKey = `${gameState.turnNumber}_${gameState.activePlayerIndex}_${gameState.phase}_${gameState.setupSubStep || ''}`;
-
-    if (prevTurnKeyRef.current !== turnKey) {
-      prevTurnKeyRef.current = turnKey;
-
+    if (wasOtherPlayer && isMyTurn) {
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
@@ -56,17 +52,16 @@ export const TurnNotificationOverlay: React.FC<TurnNotificationOverlayProps> = (
       setVisible(true);
       soundEngine.playResourceChime();
 
-      // Auto dismiss after 3s
+      // Auto dismiss after 3 seconds
       timerRef.current = setTimeout(() => {
         setVisible(false);
       }, 3000);
     }
   }, [
-    gameState.turnNumber,
-    gameState.activePlayerIndex,
-    gameState.phase,
-    gameState.setupSubStep,
+    activePlayerId,
     isMyTurn,
+    currentUserId,
+    gameState.phase,
   ]);
 
   // Clean up timer on unmount
