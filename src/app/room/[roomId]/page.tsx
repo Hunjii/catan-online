@@ -22,6 +22,7 @@ import { LeaderboardModal } from '@/components/ui/LeaderboardModal';
 import { DiceRollOverlay } from '@/components/ui/DiceRollOverlay';
 import { TradeConfirmModal } from '@/components/ui/TradeConfirmModal';
 import { StealNotificationOverlay } from '@/components/ui/StealNotificationOverlay';
+import { TurnNotificationOverlay } from '@/components/ui/TurnNotificationOverlay';
 import {
   Loader2,
   Menu,
@@ -191,12 +192,7 @@ export default function GameRoomPage() {
           </span>
         </div>
 
-        {/* Center: Turn & Phase Status Banner */}
-        <div className="pointer-events-auto absolute left-1/2 top-2 sm:top-3 -translate-x-1/2 z-40 w-[min(92vw,30rem)]">
-          <TurnStatusBanner gameState={gameState} currentUserId={profile.id} />
-        </div>
-
-        {/* Right: 4 Action Buttons using dedicated assets */}
+        {/* Right: 3 Action Buttons using dedicated assets */}
         <div className="pointer-events-auto flex items-center gap-2 sm:gap-2.5">
           <button
             onClick={() => setIsRulebookOpen(true)}
@@ -211,30 +207,6 @@ export default function GameRoomPage() {
             />
           </button>
           <button
-            onClick={() => setIsLeaderboardOpen(true)}
-            className="relative h-11 w-11 sm:h-12 sm:w-12 hover:scale-105 active:scale-95 transition-transform duration-150 drop-shadow-md cursor-pointer shrink-0"
-            title="Bảng xếp hạng / Thống kê (Leaderboard)"
-          >
-            <Image
-              src="/assets/ingame/ingame_action_stats_button.png"
-              alt="Leaderboard"
-              fill
-              className="object-contain"
-            />
-          </button>
-          <button
-            onClick={() => setIsRulebookOpen(true)}
-            className="relative h-11 w-11 sm:h-12 sm:w-12 hover:scale-105 active:scale-95 transition-transform duration-150 drop-shadow-md cursor-pointer shrink-0"
-            title="Trợ giúp (Help)"
-          >
-            <Image
-              src="/assets/ingame/ingame_action_help_button.png"
-              alt="Help"
-              fill
-              className="object-contain"
-            />
-          </button>
-          <button
             onClick={() => setIsProfileOpen(true)}
             className="relative h-11 w-11 sm:h-12 sm:w-12 hover:scale-105 active:scale-95 transition-transform duration-150 drop-shadow-md cursor-pointer shrink-0"
             title="Cài đặt / Hồ sơ (Settings)"
@@ -242,6 +214,22 @@ export default function GameRoomPage() {
             <Image
               src="/assets/ingame/ingame_action_settings_button.png"
               alt="Settings"
+              fill
+              className="object-contain"
+            />
+          </button>
+          <button
+            onClick={() => {
+              if (window.confirm('Bạn có chắc chắn muốn rời khỏi trận đấu và quay về trang chủ?')) {
+                router.push('/');
+              }
+            }}
+            className="relative h-11 w-11 sm:h-12 sm:w-12 hover:scale-105 active:scale-95 transition-transform duration-150 drop-shadow-md cursor-pointer shrink-0"
+            title="Thoát game (Exit)"
+          >
+            <Image
+              src="/assets/ingame/ingame_action_exit_button.png"
+              alt="Exit"
               fill
               className="object-contain"
             />
@@ -377,6 +365,11 @@ export default function GameRoomPage() {
       />
 
       <StealNotificationOverlay
+        gameState={gameState}
+        currentUserId={profile.id}
+      />
+
+      <TurnNotificationOverlay
         gameState={gameState}
         currentUserId={profile.id}
       />

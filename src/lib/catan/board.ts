@@ -190,15 +190,43 @@ export function generateBoard(randomize: boolean = true): BoardData {
     }
   });
 
-  // Assign 9 standard Catan Ports along coastal vertices
-  // Coastal vertices are vertices with hexIndices.length <= 2 and adjacentEdgeIds.length <= 2
-  const coastalVertices = mergedVertices.filter((v) => v.hexIndices.length === 1);
-
-  // Group coastal vertex pairs along shared coastal edges
+  // 1. Identify all coastal edges (edges bordering only 1 hex)
   const coastalEdges = mergedEdges.filter((e) => e.hexIndices.length === 1);
 
-  // 9 Ports standard types
-  const portTypes: { type: PortType; ratio: number; resource: ResourceType | null }[] = [
+  // 2. Trace the continuous circular perimeter loop of the 30 coastal edges
+  const orderedCoastalEdges: Edge[] = [];
+  if (coastalEdges.length > 0) {
+    let currentEdge = coastalEdges[0];
+    let currentVertexId = currentEdge.vertexIds[0];
+    const visitedEdgeIds = new Set<string>();
+
+    while (orderedCoastalEdges.length < coastalEdges.length) {
+      orderedCoastalEdges.push(currentEdge);
+      visitedEdgeIds.add(currentEdge.id);
+
+      const nextVertexId =
+        currentEdge.vertexIds[0] === currentVertexId
+          ? currentEdge.vertexIds[1]
+          : currentEdge.vertexIds[0];
+      currentVertexId = nextVertexId;
+
+      const nextEdge = coastalEdges.find(
+        (e) =>
+          !visitedEdgeIds.has(e.id) &&
+          (e.vertexIds[0] === currentVertexId || e.vertexIds[1] === currentVertexId)
+      );
+
+      if (!nextEdge) break;
+      currentEdge = nextEdge;
+    }
+  }
+
+  // 3. Official Catan 9-port perimeter intervals along the 30 coastal edges
+  // Spacing: 2, 3, 2, 2, 2, 3, 2, 2, 3 blank edges between ports (total = 30 edges)
+  const portEdgeIndices = [0, 3, 7, 10, 13, 16, 20, 23, 26];
+
+  // 4. 9 Standard Port types (4 generic 3:1, 5 special 2:1)
+  const basePortTypes: { type: PortType; ratio: number; resource: ResourceType | null }[] = [
     { type: 'generic_3_1', ratio: 3, resource: null },
     { type: 'wheat_2_1', ratio: 2, resource: 'wheat' },
     { type: 'ore_2_1', ratio: 2, resource: 'ore' },
@@ -210,16 +238,19 @@ export function generateBoard(randomize: boolean = true): BoardData {
     { type: 'generic_3_1', ratio: 3, resource: null },
   ];
 
-  // Pick 9 spaced coastal edges to host ports
-  const step = Math.max(1, Math.floor(coastalEdges.length / 9));
-  for (let i = 0; i < 9 && i * step < coastalEdges.length; i++) {
-    const cEdge = coastalEdges[i * step];
-    const pInfo = portTypes[i];
-    const v1 = mergedVertices.find((v) => v.id === cEdge.vertexIds[0]);
-    const v2 = mergedVertices.find((v) => v.id === cEdge.vertexIds[1]);
-    if (v1) v1.port = { ...pInfo };
-    if (v2) v2.port = { ...pInfo };
-  }
+  const portTypes = randomize ? shuffleArray(basePortTypes) : basePortTypes;
+
+  // 5. Assign each port to its dedicated pair of vertices on the coastal edge
+  portEdgeIndices.forEach((edgeIdx, i) => {
+    if (edgeIdx < orderedCoastalEdges.length && i < portTypes.length) {
+      const cEdge = orderedCoastalEdges[edgeIdx];
+      const pInfo = portTypes[i];
+      const v1 = mergedVertices.find((v) => v.id === cEdge.vertexIds[0]);
+      const v2 = mergedVertices.find((v) => v.id === cEdge.vertexIds[1]);
+      if (v1) v1.port = { ...pInfo };
+      if (v2) v2.port = { ...pInfo };
+    }
+  });
 
   return {
     hexes,
